@@ -14,9 +14,9 @@
 ##
 # Import Modules
 #
-from String import *
+from .String import *
 from CommonDataClass.DataClass import *
-from DataType import *
+from .DataType import *
 
 ## ParseDefineMacro
 #
@@ -37,13 +37,13 @@ def ParseDefineMacro2(Table, RecordSets, GlobalMacro):
     #
     # Overrided by Global Macros
     #
-    for Key in GlobalMacro.keys():
+    for Key in list(GlobalMacro.keys()):
         Macros[Key] = GlobalMacro[Key]
 
     #
     # Replace the Macros
     #
-    for Key in RecordSets.keys():
+    for Key in list(RecordSets.keys()):
         if RecordSets[Key] != []:
             for Item in RecordSets[Key]:
                 Item[0] = ReplaceMacro(Item[0], Macros)
@@ -79,7 +79,7 @@ def ParseDefineMacro(Table, GlobalMacro):
     #
     # Overrided by Global Macros
     #
-    for Key in GlobalMacro.keys():
+    for Key in list(GlobalMacro.keys()):
         Macros[Key] = GlobalMacro[Key]
 
     #

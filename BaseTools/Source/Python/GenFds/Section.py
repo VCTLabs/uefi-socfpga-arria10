@@ -16,7 +16,7 @@
 # Import Modules
 #
 from CommonDataClass.FdfClass import SectionClassObject
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 import Common.LongFilePathOs as os, glob
 from Common import EdkLogger
 from Common.BuildToolError import *
@@ -111,7 +111,7 @@ class Section (SectionClassObject):
     #   @retval tuple       (File list, boolean)
     #
     def GetFileList(FfsInf, FileType, FileExtension, Dict = {}):
-        if FileType in Section.SectFileType.keys() :
+        if FileType in list(Section.SectFileType.keys()) :
             IsSect = True
         else :
             IsSect = False
@@ -162,7 +162,7 @@ class Section (SectionClassObject):
                 SuffixMap = FfsInf.GetFinalTargetSuffixMap()
                 if Suffix in SuffixMap:
                     FileList.extend(SuffixMap[Suffix])
-                
+
         #Process the file lists is alphabetical for a same section type
         if len (FileList) > 1:
             FileList.sort()

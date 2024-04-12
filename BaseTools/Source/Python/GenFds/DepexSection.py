@@ -15,10 +15,10 @@
 ##
 # Import Modules
 #
-import Section
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from . import Section
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 import subprocess
-from Ffs import Ffs
+from .Ffs import Ffs
 import Common.LongFilePathOs as os
 from CommonDataClass.FdfClass import DepexSectionClassObject
 from AutoGen.GenDepex import DependencyExpression
@@ -77,7 +77,7 @@ class DepexSection (DepexSectionClassObject):
     #   @retval tuple       (Generated file name list, section alignment)
     #
     def GenSection(self, OutputPath, ModuleName, SecNum, keyStringList, FfsFile = None, Dict = {}):
-        
+
         if self.ExpressionProcessed == False:
             self.Expression = self.Expression.replace("\n", " ").replace("\r", " ")
             ExpList = self.Expression.split()

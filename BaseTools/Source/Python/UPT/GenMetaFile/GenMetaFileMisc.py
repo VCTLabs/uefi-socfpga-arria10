@@ -4,9 +4,9 @@
 #
 # Copyright (c) 2011 - 2014, Intel Corporation. All rights reserved.<BR>
 #
-# This program and the accompanying materials are licensed and made available 
-# under the terms and conditions of the BSD License which accompanies this 
-# distribution. The full text of the license may be found at 
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the BSD License which accompanies this
+# distribution. The full text of the license may be found at
 # http://opensource.org/licenses/bsd-license.php
 #
 # THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
@@ -26,13 +26,13 @@ from Parser.DecParser import Dec
 #  @param SectionDict: string of source file path/name
 #  @param Arch:     string of source file family field
 #  @param ExternList:  string of source file FeatureFlag field
-#   
+#
 def AddExternToDefineSec(SectionDict, Arch, ExternList):
     LeftOffset = 31
     for ArchList, EntryPoint, UnloadImage, Constructor, Destructor, FFE, HelpStringList in ExternList:
         if Arch or ArchList:
             if EntryPoint:
-                Statement = (u'%s ' % DT.TAB_INF_DEFINES_ENTRY_POINT).ljust(LeftOffset) + u'= %s' % EntryPoint
+                Statement = ('%s ' % DT.TAB_INF_DEFINES_ENTRY_POINT).ljust(LeftOffset) + '= %s' % EntryPoint
                 if FFE:
                     Statement += ' | %s' % FFE
                 if len(HelpStringList) > 0:
@@ -42,7 +42,7 @@ def AddExternToDefineSec(SectionDict, Arch, ExternList):
                 SectionDict[Arch] = SectionDict[Arch] + [Statement]
 
             if UnloadImage:
-                Statement = (u'%s ' % DT.TAB_INF_DEFINES_UNLOAD_IMAGE).ljust(LeftOffset) + u'= %s' % UnloadImage
+                Statement = ('%s ' % DT.TAB_INF_DEFINES_UNLOAD_IMAGE).ljust(LeftOffset) + '= %s' % UnloadImage
                 if FFE:
                     Statement += ' | %s' % FFE
 
@@ -53,7 +53,7 @@ def AddExternToDefineSec(SectionDict, Arch, ExternList):
                 SectionDict[Arch] = SectionDict[Arch] + [Statement]
 
             if Constructor:
-                Statement = (u'%s ' % DT.TAB_INF_DEFINES_CONSTRUCTOR).ljust(LeftOffset) + u'= %s' % Constructor
+                Statement = ('%s ' % DT.TAB_INF_DEFINES_CONSTRUCTOR).ljust(LeftOffset) + '= %s' % Constructor
                 if FFE:
                     Statement += ' | %s' % FFE
 
@@ -64,7 +64,7 @@ def AddExternToDefineSec(SectionDict, Arch, ExternList):
                 SectionDict[Arch] = SectionDict[Arch] + [Statement]
 
             if Destructor:
-                Statement = (u'%s ' % DT.TAB_INF_DEFINES_DESTRUCTOR).ljust(LeftOffset) + u'= %s' % Destructor
+                Statement = ('%s ' % DT.TAB_INF_DEFINES_DESTRUCTOR).ljust(LeftOffset) + '= %s' % Destructor
                 if FFE:
                     Statement += ' | %s' % FFE
 
@@ -88,7 +88,7 @@ def ObtainPcdName(Packages, TokenSpaceGuidValue, Token):
 
         #
         # find package path/name
-        # 
+        #
         for PkgInfo in GlobalData.gWSPKG_LIST:
             if Guid == PkgInfo[1]:
                 if (not Version) or (Version == PkgInfo[2]):
@@ -111,7 +111,7 @@ def ObtainPcdName(Packages, TokenSpaceGuidValue, Token):
         PcdCNameFound = False
 
         #
-        # Get TokenSpaceGuidCName from Guids section 
+        # Get TokenSpaceGuidCName from Guids section
         #
         for GuidKey in DecGuidsDict:
             GuidList = DecGuidsDict[GuidKey]
@@ -139,9 +139,9 @@ def ObtainPcdName(Packages, TokenSpaceGuidValue, Token):
     return TokenSpaceGuidName, PcdCName
 
 ## _TransferDict
-#  transfer dict that using (Statement, SortedArch) as key, 
+#  transfer dict that using (Statement, SortedArch) as key,
 #  (GenericComment, UsageComment) as value into a dict that using SortedArch as
-#  key and NewStatement as value 
+#  key and NewStatement as value
 #
 def TransferDict(OrigDict, Type=None):
     NewDict = {}
@@ -154,7 +154,7 @@ def TransferDict(OrigDict, Type=None):
         for Statement, SortedArch in OrigDict:
             if len(Statement) > LeftOffset:
                 LeftOffset = len(Statement)
-        
+
     for Statement, SortedArch in OrigDict:
         Comment = OrigDict[Statement, SortedArch]
         #
@@ -174,4 +174,3 @@ def TransferDict(OrigDict, Type=None):
             NewDict[SortedArch] = [NewStateMent]
 
     return NewDict
-

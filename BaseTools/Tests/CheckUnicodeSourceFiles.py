@@ -30,7 +30,7 @@ EdkLogger.InitializeForUnitTest()
 
 class Tests(TestTools.BaseToolsTest):
 
-    SampleData = u'''
+    SampleData = '''
         #langdef en-US "English"
         #string STR_A #language en-US "STR_A for en-US"
     '''
@@ -92,7 +92,7 @@ class Tests(TestTools.BaseToolsTest):
         # This test makes sure that BaseTools rejects these characters
         # if seen in a .uni file.
         #
-        data = u'''
+        data = '''
             #langdef en-US "English"
             #string STR_A #language en-US "CodePoint (\U00010300) > 0xFFFF"
         '''
@@ -126,7 +126,7 @@ class Tests(TestTools.BaseToolsTest):
         self.CheckFile(encoding=None, shouldPass=True, string=data)
 
     def test32bitUnicodeCharInUtf8File(self):
-        data = u'''
+        data = '''
             #langdef en-US "English"
             #string STR_A #language en-US "CodePoint (\U00010300) > 0xFFFF"
         '''
@@ -134,7 +134,7 @@ class Tests(TestTools.BaseToolsTest):
         self.CheckFile('utf_16', shouldPass=False, string=data)
 
     def test32bitUnicodeCharInUtf8File(self):
-        data = u'''
+        data = '''
             #langdef en-US "English"
             #string STR_A #language en-US "CodePoint (\U00010300) > 0xFFFF"
         '''
@@ -142,7 +142,7 @@ class Tests(TestTools.BaseToolsTest):
         self.CheckFile('utf_8', shouldPass=False, string=data)
 
     def test32bitUnicodeCharInUtf8Comment(self):
-        data = u'''
+        data = '''
             // Even in comments, we reject non-UCS-2 chars: \U00010300
             #langdef en-US "English"
             #string STR_A #language en-US "A"

@@ -15,10 +15,10 @@
 ##
 # Import Modules
 #
-import Section
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from . import Section
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 import subprocess
-from Ffs import Ffs
+from .Ffs import Ffs
 import Common.LongFilePathOs as os
 from CommonDataClass.FdfClass import DataSectionClassObject
 from Common.Misc import PeImageClass

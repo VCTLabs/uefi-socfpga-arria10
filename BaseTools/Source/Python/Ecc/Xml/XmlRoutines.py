@@ -32,7 +32,7 @@ def CreateXmlElement(Name, String, NodeList, AttributeList):
     Element = Doc.createElement(Name)
     if String != '' and String != None:
         Element.appendChild(Doc.createTextNode(String))
-    
+
     for Item in NodeList:
         if type(Item) == type([]):
             Key = Item[0]
@@ -48,7 +48,7 @@ def CreateXmlElement(Name, String, NodeList, AttributeList):
         Value = Item[1]
         if Key != '' and Key != None and Value != '' and Value != None:
             Element.setAttribute(Key, Value)
-    
+
     return Element
 
 ## Get a list of XML nodes using XPath style syntax.
@@ -164,7 +164,7 @@ def XmlElementData(Dom):
 # @revel  Elements           A list of XML elements matching XPath style Sting.
 #
 def XmlElementList(Dom, String):
-    return map(XmlElementData, XmlList(Dom, String))
+    return list(map(XmlElementData, XmlList(Dom, String)))
 
 
 ## Get the XML attribute of the current node.
@@ -214,8 +214,8 @@ def XmlParseFile(FileName):
         Dom = xml.dom.minidom.parse(XmlFile)
         XmlFile.close()
         return Dom
-    except Exception, X:
-        print X
+    except Exception as X:
+        print(X)
         return ""
 
 # This acts like the main() function for the script, unless it is 'import'ed
@@ -225,5 +225,5 @@ if __name__ == '__main__':
     A = CreateXmlElement('AAA', 'CCC',  [['AAA', '111'], ['BBB', '222']], [['A', '1'], ['B', '2']])
     B = CreateXmlElement('ZZZ', 'CCC',  [['XXX', '111'], ['YYY', '222']], [['A', '1'], ['B', '2']])
     C = CreateXmlList('DDD', 'EEE', [A, B], ['FFF', 'GGG'])
-    print C.toprettyxml(indent = " ")
+    print(C.toprettyxml(indent = " "))
     pass

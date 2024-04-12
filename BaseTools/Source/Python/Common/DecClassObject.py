@@ -15,17 +15,17 @@
 # Import Modules
 #
 import Common.LongFilePathOs as os
-from String import *
-from DataType import *
-from Identification import *
-from Dictionary import *
+from .String import *
+from .DataType import *
+from .Identification import *
+from .Dictionary import *
 from CommonDataClass.PackageClass import *
 from CommonDataClass.CommonClass import PcdClass
-from BuildToolError import *
+from .BuildToolError import *
 from Table.TableDec import TableDec
-import Database
-from Parsing import *
-import GlobalData
+from . import Database
+from .Parsing import *
+from . import GlobalData
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
 #
@@ -51,7 +51,7 @@ Section = {TAB_UNKNOWN.upper() : MODEL_UNKNOWN,
 ## DecObject
 #
 # This class defined basic Dec object which is used by inheriting
-# 
+#
 # @param object:       Inherited from object class
 #
 class DecObject(object):
@@ -61,7 +61,7 @@ class DecObject(object):
 ## Dec
 #
 # This class defined the structure used in Dec object
-# 
+#
 # @param DecObject:         Inherited from DecObject class
 # @param Filename:          Input value for Filename of Dec file, default is None
 # @param IsMergeAllArches:  Input value for IsMergeAllArches
@@ -104,7 +104,7 @@ class Dec(DecObject):
         #
         # Upper all KEYs to ignore case sensitive when parsing
         #
-        self.KeyList = map(lambda c: c.upper(), self.KeyList)
+        self.KeyList = [c.upper() for c in self.KeyList]
 
         #
         # Init RecordSet
@@ -248,7 +248,7 @@ class Dec(DecObject):
         ParseDefineMacro2(self.TblDec, self.RecordSet, GlobalData.gGlobalDefines)
 
     ## Transfer to Package Object
-    # 
+    #
     # Transfer all contents of a Dec file to a standard Package Object
     #
     def DecToPackage(self):
@@ -296,7 +296,7 @@ class Dec(DecObject):
     #
     # Gen Package Header of Dec as <Key> = <Value>
     #
-    # @param ContainerFile: The Dec file full path 
+    # @param ContainerFile: The Dec file full path
     #
     def GenPackageHeader(self, ContainerFile):
         EdkLogger.debug(2, "Generate PackageHeader ...")
@@ -331,9 +331,9 @@ class Dec(DecObject):
     ## GenIncludes
     #
     # Gen Includes of Dec
-    # 
     #
-    # @param ContainerFile: The Dec file full path 
+    #
+    # @param ContainerFile: The Dec file full path
     #
     def GenIncludes(self, ContainerFile):
         EdkLogger.debug(2, "Generate %s ..." % TAB_INCLUDES)
@@ -351,7 +351,7 @@ class Dec(DecObject):
                 if Record[1] == Arch or Record[1] == TAB_ARCH_COMMON:
                     MergeArches(Includes, Record[0], Arch)
 
-        for Key in Includes.keys():
+        for Key in list(Includes.keys()):
             Include = IncludeClass()
             Include.FilePath = NormPath(Key)
             Include.SupArchList = Includes[Key]
@@ -362,7 +362,7 @@ class Dec(DecObject):
     # Gen Ppis of Dec
     # <CName>=<GuidValue>
     #
-    # @param ContainerFile: The Dec file full path 
+    # @param ContainerFile: The Dec file full path
     #
     def GenGuidProtocolPpis(self, Type, ContainerFile):
         EdkLogger.debug(2, "Generate %s ..." % Type)
@@ -393,7 +393,7 @@ class Dec(DecObject):
         elif Type == TAB_PPIS:
             ListMember = self.Package.PpiDeclarations
 
-        for Key in Lists.keys():
+        for Key in list(Lists.keys()):
             ListClass = GuidProtocolPpiCommonClass()
             ListClass.CName = Key[0]
             ListClass.Guid = Key[1]
@@ -406,7 +406,7 @@ class Dec(DecObject):
     # Gen LibraryClasses of Dec
     # <CName>=<GuidValue>
     #
-    # @param ContainerFile: The Dec file full path 
+    # @param ContainerFile: The Dec file full path
     #
     def GenLibraryClasses(self, ContainerFile):
         EdkLogger.debug(2, "Generate %s ..." % TAB_LIBRARY_CLASSES)
@@ -434,7 +434,7 @@ class Dec(DecObject):
                         self.TblDec.Exec(SqlCommand)
 
 
-        for Key in LibraryClasses.keys():
+        for Key in list(LibraryClasses.keys()):
             LibraryClass = LibraryClassClass()
             LibraryClass.LibraryClass = Key[0]
             LibraryClass.RecommendedInstance = NormPath(Key[1])
@@ -447,7 +447,7 @@ class Dec(DecObject):
     # Gen Pcds of Dec
     # <TokenSpcCName>.<TokenCName>|<Value>|<DatumType>|<Token>
     #
-    # @param ContainerFile: The Dec file full path 
+    # @param ContainerFile: The Dec file full path
     #
     def GenPcds(self, ContainerFile):
         EdkLogger.debug(2, "Generate %s ..." % TAB_PCDS)
@@ -495,11 +495,11 @@ class Dec(DecObject):
         # Update to database
         #
         if self.IsToDatabase:
-            for Key in PcdToken.keys():
+            for Key in list(PcdToken.keys()):
                 SqlCommand = """update %s set Value2 = '%s' where ID = %s""" % (self.TblDec.Table, ".".join((PcdToken[Key][0], PcdToken[Key][1])), Key)
                 self.TblDec.Exec(SqlCommand)
 
-        for Key in Pcds.keys():
+        for Key in list(Pcds.keys()):
             Pcd = PcdClass()
             Pcd.CName = Key[1]
             Pcd.Token = Key[4]
@@ -516,32 +516,32 @@ class Dec(DecObject):
     #
     def ShowPackage(self):
         M = self.Package
-        for Arch in M.Header.keys():
-            print '\nArch =', Arch
-            print 'Filename =', M.Header[Arch].FileName
-            print 'FullPath =', M.Header[Arch].FullPath
-            print 'BaseName =', M.Header[Arch].Name
-            print 'Guid =', M.Header[Arch].Guid
-            print 'Version =', M.Header[Arch].Version
-            print 'DecSpecification =', M.Header[Arch].DecSpecification
-        print '\nIncludes =', M.Includes
+        for Arch in list(M.Header.keys()):
+            print('\nArch =', Arch)
+            print('Filename =', M.Header[Arch].FileName)
+            print('FullPath =', M.Header[Arch].FullPath)
+            print('BaseName =', M.Header[Arch].Name)
+            print('Guid =', M.Header[Arch].Guid)
+            print('Version =', M.Header[Arch].Version)
+            print('DecSpecification =', M.Header[Arch].DecSpecification)
+        print('\nIncludes =', M.Includes)
         for Item in M.Includes:
-            print Item.FilePath, Item.SupArchList
-        print '\nGuids =', M.GuidDeclarations
+            print(Item.FilePath, Item.SupArchList)
+        print('\nGuids =', M.GuidDeclarations)
         for Item in M.GuidDeclarations:
-            print Item.CName, Item.Guid, Item.SupArchList
-        print '\nProtocols =', M.ProtocolDeclarations
+            print(Item.CName, Item.Guid, Item.SupArchList)
+        print('\nProtocols =', M.ProtocolDeclarations)
         for Item in M.ProtocolDeclarations:
-            print Item.CName, Item.Guid, Item.SupArchList
-        print '\nPpis =', M.PpiDeclarations
+            print(Item.CName, Item.Guid, Item.SupArchList)
+        print('\nPpis =', M.PpiDeclarations)
         for Item in M.PpiDeclarations:
-            print Item.CName, Item.Guid, Item.SupArchList
-        print '\nLibraryClasses =', M.LibraryClassDeclarations
+            print(Item.CName, Item.Guid, Item.SupArchList)
+        print('\nLibraryClasses =', M.LibraryClassDeclarations)
         for Item in M.LibraryClassDeclarations:
-            print Item.LibraryClass, Item.RecommendedInstance, Item.SupModuleList, Item.SupArchList
-        print '\nPcds =', M.PcdDeclarations
+            print(Item.LibraryClass, Item.RecommendedInstance, Item.SupModuleList, Item.SupArchList)
+        print('\nPcds =', M.PcdDeclarations)
         for Item in M.PcdDeclarations:
-            print 'CName=', Item.CName, 'TokenSpaceGuidCName=', Item.TokenSpaceGuidCName, 'DefaultValue=', Item.DefaultValue, 'ItemType=', Item.ItemType, 'Token=', Item.Token, 'DatumType=', Item.DatumType, Item.SupArchList
+            print('CName=', Item.CName, 'TokenSpaceGuidCName=', Item.TokenSpaceGuidCName, 'DefaultValue=', Item.DefaultValue, 'ItemType=', Item.ItemType, 'Token=', Item.Token, 'DatumType=', Item.DatumType, Item.SupArchList)
 
 ##
 #

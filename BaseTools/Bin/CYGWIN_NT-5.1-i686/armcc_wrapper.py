@@ -86,7 +86,7 @@ if __name__ == "__main__":
      ret = main(sys.argv[2:])
 
   except:
-    print "exiting: exception from " + sys.argv[0]
+    print("exiting: exception from " + sys.argv[0])
     ret = 2
 
   sys.exit(ret)

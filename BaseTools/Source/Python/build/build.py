@@ -18,7 +18,6 @@
 #
 import Common.LongFilePathOs as os
 import re
-import StringIO
 import sys
 import glob
 import time
@@ -26,6 +25,7 @@ import platform
 import traceback
 import encodings.ascii
 
+from io import StringIO
 from struct import *
 from threading import *
 from optparse import OptionParser
@@ -42,7 +42,7 @@ from AutoGen.AutoGen import *
 from Common.BuildToolError import *
 from Workspace.WorkspaceDatabase import *
 
-from BuildReport import BuildReport
+from .BuildReport import BuildReport
 from GenPatchPcdTable.GenPatchPcdTable import *
 from PatchPcdValue.PatchPcdValue import *
 
@@ -70,7 +70,7 @@ TmpTableDict = {}
 #   Otherwise, False is returned
 #
 def IsToolInPath(tool):
-    if os.environ.has_key('PATHEXT'):
+    if 'PATHEXT' in os.environ:
         extns = os.environ['PATHEXT'].split(os.path.pathsep)
     else:
         extns = ('',)
@@ -245,7 +245,7 @@ def LaunchCommand(Command, WorkingDir):
     # if working directory doesn't exist, Popen() will raise an exception
     if not os.path.isdir(WorkingDir):
         EdkLogger.error("build", FILE_NOT_FOUND, ExtraData=WorkingDir)
-    
+
     # Command is used as the first Argument in following Popen().
     # It could be a string or sequence. We find that if command is a string in following Popen(),
     # ubuntu may fail with an error message that the command is not found.
@@ -472,7 +472,7 @@ class BuildTask:
 
                 # get all pending tasks
                 BuildTask._PendingQueueLock.acquire()
-                BuildObjectList = BuildTask._PendingQueue.keys()
+                BuildObjectList = list(BuildTask._PendingQueue.keys())
                 #
                 # check if their dependency is resolved, and if true, move them
                 # into ready queue
@@ -493,7 +493,7 @@ class BuildTask:
                     BuildTask._Thread.acquire(True)
 
                     # start a new build thread
-                    Bo = BuildTask._ReadyQueue.keys()[0]
+                    Bo = list(BuildTask._ReadyQueue.keys())[0]
                     Bt = BuildTask._ReadyQueue.pop(Bo)
 
                     # move into running queue
@@ -517,7 +517,7 @@ class BuildTask:
                 EdkLogger.debug(EdkLogger.DEBUG_8, "Threads [%s]" % ", ".join([Th.getName() for Th in threading.enumerate()]))
                 # avoid tense loop
                 time.sleep(0.1)
-        except BaseException, X:
+        except BaseException as X:
             #
             # TRICK: hide the output of threads left runing, so that the user can
             #        catch the error message easily
@@ -993,7 +993,7 @@ class Build():
             try:
                 #os.rmdir(AutoGenObject.BuildDir)
                 RemoveDirectory(AutoGenObject.BuildDir, True)
-            except WindowsError, X:
+            except WindowsError as X:
                 EdkLogger.error("build", FILE_DELETE_FAILURE, ExtraData=str(X))
         return True
 
@@ -1083,7 +1083,7 @@ class Build():
             try:
                 #os.rmdir(AutoGenObject.BuildDir)
                 RemoveDirectory(AutoGenObject.BuildDir, True)
-            except WindowsError, X:
+            except WindowsError as X:
                 EdkLogger.error("build", FILE_DELETE_FAILURE, ExtraData=str(X))
         return True
 
@@ -1092,7 +1092,7 @@ class Build():
     def _RebaseModule (self, MapBuffer, BaseAddress, ModuleList, AddrIsOffset = True, ModeIsSmm = False):
         if ModeIsSmm:
             AddrIsOffset = False
-        InfFileNameList = ModuleList.keys()
+        InfFileNameList = list(ModuleList.keys())
         #InfFileNameList.sort()
         for InfFile in InfFileNameList:
             sys.stdout.write (".")
@@ -1195,7 +1195,7 @@ class Build():
             # First get the XIP base address for FV map file.
             GuidPattern = re.compile("[-a-fA-F0-9]+")
             GuidName = re.compile("\(GUID=[-a-fA-F0-9]+")
-            for FvName in Wa.FdfProfile.FvDict.keys():
+            for FvName in list(Wa.FdfProfile.FvDict.keys()):
                 FvMapBuffer = os.path.join(Wa.FvDir, FvName + '.Fv.map')
                 if not os.path.exists(FvMapBuffer):
                     continue
@@ -1608,7 +1608,7 @@ class Build():
                     for Module in ModuleList:
                         # Get ModuleAutoGen object to generate C code file and makefile
                         Ma = ModuleAutoGen(Wa, Module, BuildTarget, ToolChain, Arch, self.PlatformFile)
-                        
+
                         if Ma == None:
                             continue
                         # Not to auto-gen for targets 'clean', 'cleanlib', 'cleanall', 'run', 'fds'
@@ -1740,7 +1740,7 @@ class Build():
 
                     # Look through the tool definitions for GUIDed tools
                     guidAttribs = []
-                    for (attrib, value) in self.ToolDef.ToolsDefTxtDictionary.iteritems():
+                    for (attrib, value) in self.ToolDef.ToolsDefTxtDictionary.items():
                         if attrib.upper().endswith('_GUID'):
                             split = attrib.split('_')
                             thisPrefix = '_'.join(split[0:3]) + '_'
@@ -1757,7 +1757,7 @@ class Build():
                     toolsFile = os.path.join(FvDir, 'GuidedSectionTools.txt')
                     toolsFile = open(toolsFile, 'wt')
                     for guidedSectionTool in guidAttribs:
-                        print >> toolsFile, ' '.join(guidedSectionTool)
+                        print(' '.join(guidedSectionTool), file=toolsFile)
                     toolsFile.close()
 
     ## Returns the full path of the tool.
@@ -2040,14 +2040,14 @@ def Main():
         # All job done, no error found and no exception raised
         #
         BuildError = False
-    except FatalError, X:
+    except FatalError as X:
         if MyBuild != None:
             # for multi-thread build exits safely
             MyBuild.Relinquish()
         if Option != None and Option.debug != None:
             EdkLogger.quiet("(Python %s on %s) " % (platform.python_version(), sys.platform) + traceback.format_exc())
         ReturnCode = X.args[0]
-    except Warning, X:
+    except Warning as X:
         # error from Fdf parser
         if MyBuild != None:
             # for multi-thread build exits safely
@@ -2114,4 +2114,3 @@ if __name__ == '__main__':
     ## 0-127 is a safe return range, and 1 is a standard default error
     if r < 0 or r > 127: r = 1
     sys.exit(r)
-

@@ -40,8 +40,8 @@ if PythonSourceDir not in sys.path:
 
 def MakeTheTestSuite(localItems):
     tests = []
-    for name, item in localItems.iteritems():
-        if isinstance(item, types.TypeType):
+    for name, item in list(localItems.items()):
+        if isinstance(item, type):
             if issubclass(item, unittest.TestCase):
                 tests.append(unittest.TestLoader().loadTestsFromTestCase(item))
             elif issubclass(item, unittest.TestSuite):
@@ -78,7 +78,7 @@ class BaseToolsTest(unittest.TestCase):
     def HandleTreeDeleteError(self, function, path, excinfo):
         os.chmod(path, stat.S_IWRITE)
         function(path)
-    
+
     def RemoveDir(self, dir):
         shutil.rmtree(dir, False, self.HandleTreeDeleteError)
 
@@ -91,9 +91,9 @@ class BaseToolsTest(unittest.TestCase):
             os.remove(path)
 
     def DisplayBinaryData(self, description, data):
-        print description, '(base64 encoded):'
+        print(('(base64 encoded): %s', description))
         b64data = base64.b64encode(data)
-        print b64data
+        print(b64data)
 
     def DisplayFile(self, fileName):
         sys.stdout.write(self.ReadTmpFile(fileName))
@@ -161,7 +161,7 @@ class BaseToolsTest(unittest.TestCase):
         if maxlen is None: maxlen = minlen
         return ''.join(
             [chr(random.randint(0,255))
-             for x in xrange(random.randint(minlen, maxlen))
+             for x in range(random.randint(minlen, maxlen))
             ])
 
     def setUp(self):
@@ -183,4 +183,3 @@ class BaseToolsTest(unittest.TestCase):
 
         os.environ['PATH'] = self.savedEnvPath
         sys.path = self.savedSysPath
-

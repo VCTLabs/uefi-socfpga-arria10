@@ -16,7 +16,7 @@
 #
 import Common.EdkLogger as EdkLogger
 import Common.LongFilePathOs as os, time
-from Table import Table
+from .Table import Table
 from Common.String import ConvertToSqlString2
 import Eot.EotToolError as EotToolError
 import Eot.EotGlobalData as EotGlobalData
@@ -24,7 +24,7 @@ import Eot.EotGlobalData as EotGlobalData
 ## TableReport
 #
 # This class defined a table used for data model
-# 
+#
 # @param object:       Inherited from object class
 #
 #
@@ -32,7 +32,7 @@ class TableEotReport(Table):
     def __init__(self, Cursor):
         Table.__init__(self, Cursor)
         self.Table = 'Report'
-    
+
     ## Create table
     #
     # Create table report
@@ -68,7 +68,7 @@ class TableEotReport(Table):
                      % (self.Table, self.ID, ModuleID, ModuleName, ModuleGuid, SourceFileID, SourceFileFullPath, \
                         ItemName, ItemType, ItemMode, GuidName, GuidMacro, GuidValue, BelongsToFunction, Enabled)
         Table.Insert(self, SqlCommand)
-        
+
     def GetMaxID(self):
         SqlCommand = """select max(ID) from %s""" % self.Table
         self.Cur.execute(SqlCommand)

@@ -31,8 +31,8 @@ from Common.Expression import *
 from CommonDataClass.Exceptions import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
-from MetaFileTable import MetaFileStorage
-from MetaFileCommentParser import CheckInfComment
+from .MetaFileTable import MetaFileStorage
+from .MetaFileCommentParser import CheckInfComment
 
 ## A decorator used to parse macro definition
 def ParseMacro(Parser):
@@ -341,7 +341,7 @@ class MetaFileParser(object):
 
         self._ValueList = [ReplaceMacro(Value, self._Macros) for Value in self._ValueList]
         Name, Value = self._ValueList[1], self._ValueList[2]
-        # Sometimes, we need to make differences between EDK and EDK2 modules 
+        # Sometimes, we need to make differences between EDK and EDK2 modules
         if Name == 'INF_VERSION':
             try:
                 self._Version = int(Value, 0)
@@ -385,7 +385,7 @@ class MetaFileParser(object):
         Macros.update(self._GetApplicableSectionMacro())
         return Macros
 
-    ## Construct section Macro dict 
+    ## Construct section Macro dict
     def _ConstructSectionMacroDict(self, Name, Value):
         ScopeKey = [(Scope[0], Scope[1]) for Scope in self._Scope]
         ScopeKey = tuple(ScopeKey)
@@ -401,7 +401,7 @@ class MetaFileParser(object):
         SectionLocalMacros = self._SectionsMacroDict[SectionDictKey]
         SectionLocalMacros[Name] = Value
 
-    ## Get section Macros that are applicable to current line, which may come from other sections 
+    ## Get section Macros that are applicable to current line, which may come from other sections
     ## that share the same name while scope is wider
     def _GetApplicableSectionMacro(self):
         Macros = {}
@@ -1268,8 +1268,8 @@ class DscParser(MetaFileParser):
                 self._InSubsection = False
             try:
                 Processer[self._ItemType]()
-            except EvaluationException, Excpt:
-                # 
+            except EvaluationException as Excpt:
+                #
                 # Only catch expression evaluation error here. We need to report
                 # the precise number of line on which the error occurred
                 #
@@ -1290,7 +1290,7 @@ class DscParser(MetaFileParser):
                     EdkLogger.error('Parser', FORMAT_INVALID, "Invalid expression: %s" % str(Excpt),
                                     File=self._FileWithError, ExtraData=' '.join(self._ValueList),
                                     Line=self._LineIndex + 1)
-            except MacroException, Excpt:
+            except MacroException as Excpt:
                 EdkLogger.error('Parser', FORMAT_INVALID, str(Excpt),
                                 File=self._FileWithError, ExtraData=' '.join(self._ValueList),
                                 Line=self._LineIndex + 1)
@@ -1387,11 +1387,11 @@ class DscParser(MetaFileParser):
             Macros.update(GlobalData.gGlobalDefines)
             try:
                 Result = ValueExpression(self._ValueList[1], Macros)()
-            except SymbolNotFound, Exc:
+            except SymbolNotFound as Exc:
                 EdkLogger.debug(EdkLogger.DEBUG_5, str(Exc), self._ValueList[1])
                 Result = False
-            except WrnExpression, Excpt:
-                # 
+            except WrnExpression as Excpt:
+                #
                 # Catch expression evaluation warning here. We need to report
                 # the precise number of line and return the evaluation result
                 #
@@ -1437,18 +1437,18 @@ class DscParser(MetaFileParser):
             # Allow using system environment variables  in path after !include
             #
             __IncludeMacros['WORKSPACE'] = GlobalData.gGlobalDefines['WORKSPACE']
-            if "ECP_SOURCE" in GlobalData.gGlobalDefines.keys():
+            if "ECP_SOURCE" in list(GlobalData.gGlobalDefines.keys()):
                 __IncludeMacros['ECP_SOURCE'] = GlobalData.gGlobalDefines['ECP_SOURCE']
             #
             # During GenFds phase call DSC parser, will go into this branch.
             #
-            elif "ECP_SOURCE" in GlobalData.gCommandLineDefines.keys():
+            elif "ECP_SOURCE" in list(GlobalData.gCommandLineDefines.keys()):
                 __IncludeMacros['ECP_SOURCE'] = GlobalData.gCommandLineDefines['ECP_SOURCE']
 
             __IncludeMacros['EFI_SOURCE'] = GlobalData.gGlobalDefines['EFI_SOURCE']
             __IncludeMacros['EDK_SOURCE'] = GlobalData.gGlobalDefines['EDK_SOURCE']
             #
-            # Allow using MACROs comes from [Defines] section to keep compatible. 
+            # Allow using MACROs comes from [Defines] section to keep compatible.
             #
             __IncludeMacros.update(self._Macros)
 
@@ -1526,7 +1526,7 @@ class DscParser(MetaFileParser):
         if PcdValue:
             try:
                 ValList[Index] = ValueExpression(PcdValue, self._Macros)(True)
-            except WrnExpression, Value:
+            except WrnExpression as Value:
                 ValList[Index] = Value.result
 
         if ValList[Index] == 'True':
@@ -1814,7 +1814,7 @@ class DecParser(MetaFileParser):
         ValueRe = re.compile(r'^\s*L?\".*\|.*\"')
         PtrValue = ValueRe.findall(TokenList[1])
 
-        # Has VOID* type string, may contain "|" character in the string. 
+        # Has VOID* type string, may contain "|" character in the string.
         if len(PtrValue) != 0:
             ptrValueList = re.sub(ValueRe, '', TokenList[1])
             ValueList = GetSplitValueList(ptrValueList)
@@ -1891,4 +1891,3 @@ class DecParser(MetaFileParser):
 #
 if __name__ == '__main__':
     pass
-

@@ -19,7 +19,7 @@
 import Common.LongFilePathOs as os, codecs, re
 import distutils.util
 import Common.EdkLogger as EdkLogger
-import StringIO
+from io import StringIO
 from Common.BuildToolError import *
 from Common.String import GetLineNo
 from Common.Misc import PathClass
@@ -27,20 +27,20 @@ from Common.LongFilePathSupport import LongFilePath
 ##
 # Static definitions
 #
-UNICODE_WIDE_CHAR = u'\\wide'
-UNICODE_NARROW_CHAR = u'\\narrow'
-UNICODE_NON_BREAKING_CHAR = u'\\nbr'
+UNICODE_WIDE_CHAR = '\\wide'
+UNICODE_NARROW_CHAR = '\\narrow'
+UNICODE_NON_BREAKING_CHAR = '\\nbr'
 UNICODE_UNICODE_CR = '\r'
 UNICODE_UNICODE_LF = '\n'
 
-NARROW_CHAR = u'\uFFF0'
-WIDE_CHAR = u'\uFFF1'
-NON_BREAKING_CHAR = u'\uFFF2'
-CR = u'\u000D'
-LF = u'\u000A'
-NULL = u'\u0000'
-TAB = u'\t'
-BACK_SLASH_PLACEHOLDER = u'\u0006'
+NARROW_CHAR = '\uFFF0'
+WIDE_CHAR = '\uFFF1'
+NON_BREAKING_CHAR = '\uFFF2'
+CR = '\u000D'
+LF = '\u000A'
+NULL = '\u0000'
+TAB = '\t'
+BACK_SLASH_PLACEHOLDER = '\u0006'
 
 gIncludePattern = re.compile("^#include +[\"<]+([^\"< >]+)[>\"]+$", re.MULTILINE | re.UNICODE)
 
@@ -198,7 +198,7 @@ class StringDefClassObject(object):
             self.StringName = Name
             self.StringNameByteList = UniToHexList(Name)
         if Value != None:
-            self.StringValue = Value + u'\x00'        # Add a NULL at string tail
+            self.StringValue = Value + '\x00'        # Add a NULL at string tail
             self.StringValueByteList = UniToHexList(self.StringValue)
             self.Length = len(self.StringValueByteList)
         if Token != None:
@@ -213,7 +213,7 @@ class StringDefClassObject(object):
 
     def UpdateValue(self, Value = None):
         if Value != None:
-            self.StringValue = Value + u'\x00'        # Add a NULL at string tail
+            self.StringValue = Value + '\x00'        # Add a NULL at string tail
             self.StringValueByteList = UniToHexList(self.StringValue)
             self.Length = len(self.StringValueByteList)
 
@@ -238,11 +238,11 @@ class UniFileClassObject(object):
     # Get Language definition
     #
     def GetLangDef(self, File, Line):
-        Lang = distutils.util.split_quoted((Line.split(u"//")[0]))
+        Lang = distutils.util.split_quoted((Line.split("//")[0]))
         if len(Lang) != 3:
             try:
                 FileIn = self.OpenUniFile(LongFilePath(File.Path))
-            except UnicodeError, X:
+            except UnicodeError as X:
                 EdkLogger.error("build", FILE_READ_FAILURE, "File read failure: %s" % str(X), ExtraData=File);
             except:
                 EdkLogger.error("build", FILE_OPEN_FAILURE, ExtraData=File);
@@ -265,13 +265,13 @@ class UniFileClassObject(object):
         #
         # Add language string
         #
-        self.AddStringToList(u'$LANGUAGE_NAME', LangName, LangName, 0, True, Index=0)
-        self.AddStringToList(u'$PRINTABLE_LANGUAGE_NAME', LangName, LangPrintName, 1, True, Index=1)
+        self.AddStringToList('$LANGUAGE_NAME', LangName, LangName, 0, True, Index=0)
+        self.AddStringToList('$PRINTABLE_LANGUAGE_NAME', LangName, LangPrintName, 1, True, Index=1)
 
         if not IsLangInDef:
             #
             # The found STRING tokens will be added into new language string list
-            # so that the unique STRING identifier is reserved for all languages in the package list. 
+            # so that the unique STRING identifier is reserved for all languages in the package list.
             #
             FirstLangName = self.LanguageDef[0][0]
             if LangName != FirstLangName:
@@ -353,13 +353,13 @@ class UniFileClassObject(object):
             MatchString = re.match('[A-Z0-9_]+', Name, re.UNICODE)
             if MatchString == None or MatchString.end(0) != len(Name):
                 EdkLogger.error('Unicode File Parser', FORMAT_INVALID, 'The string token name %s defined in UNI file %s contains the invalid lower case character.' %(Name, self.File))
-        LanguageList = Item.split(u'#language ')
+        LanguageList = Item.split('#language ')
         for IndexI in range(len(LanguageList)):
             if IndexI == 0:
                 continue
             else:
                 Language = LanguageList[IndexI].split()[0]
-                Value = LanguageList[IndexI][LanguageList[IndexI].find(u'\"') + len(u'\"') : LanguageList[IndexI].rfind(u'\"')] #.replace(u'\r\n', u'')
+                Value = LanguageList[IndexI][LanguageList[IndexI].find('\"') + len('\"') : LanguageList[IndexI].rfind('\"')] #.replace(u'\r\n', u'')
                 Language = GetLanguageCode(Language, self.IsCompatibleMode, self.File)
                 self.AddStringToList(Name, Language, Value)
 
@@ -367,22 +367,22 @@ class UniFileClassObject(object):
     # Get include file list and load them
     #
     def GetIncludeFile(self, Item, Dir):
-        FileName = Item[Item.find(u'#include ') + len(u'#include ') :Item.find(u' ', len(u'#include '))][1:-1]
+        FileName = Item[Item.find('#include ') + len('#include ') :Item.find(' ', len('#include '))][1:-1]
         self.LoadUniFile(FileName)
 
     def StripComments(self, Line):
-        Comment = u'//'
+        Comment = '//'
         CommentPos = Line.find(Comment)
         while CommentPos >= 0:
         # if there are non matched quotes before the comment header
         # then we are in the middle of a string
         # but we need to ignore the escaped quotes and backslashes.
-            if ((Line.count(u'"', 0, CommentPos) - Line.count(u'\\"', 0, CommentPos)) & 1) == 1:
+            if ((Line.count('"', 0, CommentPos) - Line.count('\\"', 0, CommentPos)) & 1) == 1:
                 CommentPos = Line.find (Comment, CommentPos + 1)
             else:
                 return Line[:CommentPos].strip()
         return Line.strip()
-                
+
 
     #
     # Pre-process before parse .uni file
@@ -393,7 +393,7 @@ class UniFileClassObject(object):
 
         try:
             FileIn = self.OpenUniFile(LongFilePath(File.Path))
-        except UnicodeError, X:
+        except UnicodeError as X:
             EdkLogger.error("build", FILE_READ_FAILURE, "File read failure: %s" % str(X), ExtraData=File.Path);
         except:
             EdkLogger.error("build", FILE_OPEN_FAILURE, ExtraData=File.Path);
@@ -404,33 +404,33 @@ class UniFileClassObject(object):
         #
         for Line in FileIn:
             Line = Line.strip()
-            Line = Line.replace(u'\\\\', BACK_SLASH_PLACEHOLDER)
+            Line = Line.replace('\\\\', BACK_SLASH_PLACEHOLDER)
             Line = self.StripComments(Line)
 
             #
             # Ignore empty line
             #
-            if len(Line) == 0: 
-                continue 
-            
-                             
-            Line = Line.replace(u'/langdef', u'#langdef')
-            Line = Line.replace(u'/string', u'#string')
-            Line = Line.replace(u'/language', u'#language')
-            Line = Line.replace(u'/include', u'#include')
+            if len(Line) == 0:
+                continue
+
+
+            Line = Line.replace('/langdef', '#langdef')
+            Line = Line.replace('/string', '#string')
+            Line = Line.replace('/language', '#language')
+            Line = Line.replace('/include', '#include')
 
             Line = Line.replace(UNICODE_WIDE_CHAR, WIDE_CHAR)
             Line = Line.replace(UNICODE_NARROW_CHAR, NARROW_CHAR)
             Line = Line.replace(UNICODE_NON_BREAKING_CHAR, NON_BREAKING_CHAR)
 
-            Line = Line.replace(u'\\r\\n', CR + LF)
-            Line = Line.replace(u'\\n', CR + LF)
-            Line = Line.replace(u'\\r', CR)
-            Line = Line.replace(u'\\t', u' ')
-            Line = Line.replace(u'\t', u' ')
-            Line = Line.replace(u'\\"', u'"') 
-            Line = Line.replace(u"\\'", u"'") 
-            Line = Line.replace(BACK_SLASH_PLACEHOLDER, u'\\')
+            Line = Line.replace('\\r\\n', CR + LF)
+            Line = Line.replace('\\n', CR + LF)
+            Line = Line.replace('\\r', CR)
+            Line = Line.replace('\\t', ' ')
+            Line = Line.replace('\t', ' ')
+            Line = Line.replace('\\"', '"')
+            Line = Line.replace("\\'", "'")
+            Line = Line.replace(BACK_SLASH_PLACEHOLDER, '\\')
 
 #           if Line.find(u'\\x'):
 #               hex = Line[Line.find(u'\\x') + 2 : Line.find(u'\\x') + 6]
@@ -476,7 +476,7 @@ class UniFileClassObject(object):
             #
             # Get Language def information
             #
-            if Line.find(u'#langdef ') >= 0:
+            if Line.find('#langdef ') >= 0:
                 self.GetLangDef(File, Line)
                 continue
 
@@ -495,13 +495,13 @@ class UniFileClassObject(object):
             #     Mi segunda secuencia 1
             #     Mi segunda secuencia 2
             #
-            if Line.find(u'#string ') >= 0 and Line.find(u'#language ') < 0 and \
-                SecondLine.find(u'#string ') < 0 and SecondLine.find(u'#language ') >= 0 and \
-                ThirdLine.find(u'#string ') < 0 and ThirdLine.find(u'#language ') < 0:
-                Name = Line[Line.find(u'#string ') + len(u'#string ') : ].strip(' ')
-                Language = SecondLine[SecondLine.find(u'#language ') + len(u'#language ') : ].strip(' ')
+            if Line.find('#string ') >= 0 and Line.find('#language ') < 0 and \
+                SecondLine.find('#string ') < 0 and SecondLine.find('#language ') >= 0 and \
+                ThirdLine.find('#string ') < 0 and ThirdLine.find('#language ') < 0:
+                Name = Line[Line.find('#string ') + len('#string ') : ].strip(' ')
+                Language = SecondLine[SecondLine.find('#language ') + len('#language ') : ].strip(' ')
                 for IndexJ in range(IndexI + 2, len(Lines)):
-                    if Lines[IndexJ].find(u'#string ') < 0 and Lines[IndexJ].find(u'#language ') < 0:
+                    if Lines[IndexJ].find('#string ') < 0 and Lines[IndexJ].find('#language ') < 0:
                         Value = Value + Lines[IndexJ]
                     else:
                         IndexI = IndexJ
@@ -528,16 +528,16 @@ class UniFileClassObject(object):
             #     #string MY_STRING_2     #language spa     "Mi segunda secuencia 1"
             #                                               "Mi segunda secuencia 2"
             #
-            if Line.find(u'#string ') >= 0 and Line.find(u'#language ') >= 0:
+            if Line.find('#string ') >= 0 and Line.find('#language ') >= 0:
                 StringItem = Line
                 for IndexJ in range(IndexI + 1, len(Lines)):
-                    if Lines[IndexJ].find(u'#string ') >= 0 and Lines[IndexJ].find(u'#language ') >= 0:
+                    if Lines[IndexJ].find('#string ') >= 0 and Lines[IndexJ].find('#language ') >= 0:
                         IndexI = IndexJ
                         break
-                    elif Lines[IndexJ].find(u'#string ') < 0 and Lines[IndexJ].find(u'#language ') >= 0:
+                    elif Lines[IndexJ].find('#string ') < 0 and Lines[IndexJ].find('#language ') >= 0:
                         StringItem = StringItem + Lines[IndexJ]
-                    elif Lines[IndexJ].count(u'\"') >= 2:
-                        StringItem = StringItem[ : StringItem.rfind(u'\"')] + Lines[IndexJ][Lines[IndexJ].find(u'\"') + len(u'\"') : ]
+                    elif Lines[IndexJ].count('\"') >= 2:
+                        StringItem = StringItem[ : StringItem.rfind('\"')] + Lines[IndexJ][Lines[IndexJ].find('\"') + len('\"') : ]
                 self.GetStringObject(StringItem)
                 continue
 
@@ -559,7 +559,7 @@ class UniFileClassObject(object):
         else:
             EdkLogger.error('Unicode File Parser', FORMAT_NOT_SUPPORTED, "The language '%s' for %s is not defined in Unicode file %s." \
                             % (Language, Name, self.File))
-            
+
         if Language not in self.OrderedStringList:
             self.OrderedStringList[Language] = []
             self.OrderedStringDict[Language] = {}
@@ -571,7 +571,7 @@ class UniFileClassObject(object):
                 ItemIndexInList = self.OrderedStringDict[Language][Name]
                 Item = self.OrderedStringList[Language][ItemIndexInList]
                 Item.UpdateValue(Value)
-                Item.UseOtherLangDef = ''   
+                Item.UseOtherLangDef = ''
 
         if IsAdded:
             Token = len(self.OrderedStringList[Language])
@@ -581,7 +581,7 @@ class UniFileClassObject(object):
                 for LangName in self.LanguageDef:
                     #
                     # New STRING token will be added into all language string lists.
-                    # so that the unique STRING identifier is reserved for all languages in the package list. 
+                    # so that the unique STRING identifier is reserved for all languages in the package list.
                     #
                     if LangName[0] != Language:
                         if UseOtherLangDef != '':
@@ -674,12 +674,12 @@ class UniFileClassObject(object):
     # Show the instance itself
     #
     def ShowMe(self):
-        print self.LanguageDef
+        print((self.LanguageDef))
         #print self.OrderedStringList
         for Item in self.OrderedStringList:
-            print Item
+            print(Item)
             for Member in self.OrderedStringList[Item]:
-                print str(Member)
+                print((str(Member)))
 
 # This acts like the main() function for the script, unless it is 'import'ed into another
 # script.

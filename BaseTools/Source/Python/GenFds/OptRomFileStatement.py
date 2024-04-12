@@ -17,8 +17,8 @@
 #
 import Common.LongFilePathOs as os
 
-from GenFdsGlobalVariable import GenFdsGlobalVariable
-## 
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
+##
 #
 #
 class OptRomFileStatement:
@@ -40,11 +40,8 @@ class OptRomFileStatement:
     #   @retval string      Generated FFS file name
     #
     def GenFfs(self, Dict = {}):
-        
+
         if self.FileName != None:
             self.FileName = GenFdsGlobalVariable.ReplaceWorkspaceMacro(self.FileName)
-        
+
         return self.FileName
-
-
-

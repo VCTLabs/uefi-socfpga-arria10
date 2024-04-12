@@ -13,7 +13,7 @@
 
 from Common.Misc import sdict
 from Common.DataType import SUP_MODULE_USER_DEFINED
-from BuildClassObject import LibraryClassObject
+from .BuildClassObject import LibraryClassObject
 
 ## Get all packages from platform for specified arch, target and toolchain
 #
@@ -224,7 +224,7 @@ def _ResolveLibraryReference(Module, Platform):
         for LibraryName in M.Libraries:
             Library = Platform.LibraryClasses[LibraryName, ':dummy:']
             if Library == None:
-                for Key in Platform.LibraryClasses.data.keys():
+                for Key in list(Platform.LibraryClasses.data.keys()):
                     if LibraryName.upper() == Key.upper():
                         Library = Platform.LibraryClasses[Key, ':dummy:']
                         break

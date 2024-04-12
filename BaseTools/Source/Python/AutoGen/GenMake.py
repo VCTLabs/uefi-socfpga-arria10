@@ -23,7 +23,7 @@ from Common.LongFilePathSupport import OpenLongFilePath as open
 from Common.BuildToolError import *
 from Common.Misc import *
 from Common.String import *
-from BuildEngine import *
+from .BuildEngine import *
 import Common.GlobalData as GlobalData
 
 ## Regular expression for finding header file inclusions
@@ -499,7 +499,7 @@ cleanlib:
 
         # convert source files and binary files to build targets
         self.ResultFileList = [str(T.Target) for T in self._AutoGenObject.CodaTargetList]
-        if len(self.ResultFileList) == 0 and len(self._AutoGenObject.SourceFileList) <> 0:        
+        if len(self.ResultFileList) == 0 and len(self._AutoGenObject.SourceFileList) != 0:
             EdkLogger.error("build", AUTOGEN_ERROR, "Nothing to build",
                             ExtraData="[%s]" % str(self._AutoGenObject))
 
@@ -585,7 +585,7 @@ cleanlib:
             "module_file_base_name"     : self._AutoGenObject.MetaFile.BaseName,
             "module_relative_directory" : self._AutoGenObject.SourceDir,
             "package_relative_directory": package_rel_dir,
-            "module_extra_defines"      : ["%s = %s" % (k, v) for k, v in self._AutoGenObject.Module.Defines.iteritems()],
+            "module_extra_defines"      : ["%s = %s" % (k, v) for k, v in self._AutoGenObject.Module.Defines.items()],
 
             "architecture"              : self._AutoGenObject.Arch,
             "toolchain_tag"             : self._AutoGenObject.ToolChain,
@@ -599,8 +599,8 @@ cleanlib:
             "separator"                 : Separator,
             "module_tool_definitions"   : ToolsDef,
 
-            "shell_command_code"        : self._SHELL_CMD_[self._FileType].keys(),
-            "shell_command"             : self._SHELL_CMD_[self._FileType].values(),
+            "shell_command_code"        : list(self._SHELL_CMD_[self._FileType].keys()),
+            "shell_command"             : list(self._SHELL_CMD_[self._FileType].values()),
 
             "module_entry_point"        : ModuleEntryPoint,
             "image_entry_point"         : ImageEntryPoint,
@@ -766,7 +766,7 @@ cleanlib:
             else:
                 try:
                     Fd = open(F.Path, 'r')
-                except BaseException, X:
+                except BaseException as X:
                     EdkLogger.error("build", FILE_OPEN_FAILURE, ExtraData=F.Path+"\n\t"+str(X))
 
                 FileContent = Fd.read()
@@ -775,7 +775,7 @@ cleanlib:
                     continue
 
                 if FileContent[0] == 0xff or FileContent[0] == 0xfe:
-                    FileContent = unicode(FileContent, "utf-16")
+                    FileContent = str(FileContent, "utf-16")
                 IncludedFileList = gIncludePattern.findall(FileContent)
 
                 for Inc in IncludedFileList:
@@ -1000,8 +1000,8 @@ ${BEGIN}\t-@${create_directory_command}\n${END}\
             "separator"                 : Separator,
             "module_tool_definitions"   : ToolsDef,
 
-            "shell_command_code"        : self._SHELL_CMD_[self._FileType].keys(),
-            "shell_command"             : self._SHELL_CMD_[self._FileType].values(),
+            "shell_command_code"        : list(self._SHELL_CMD_[self._FileType].keys()),
+            "shell_command"             : list(self._SHELL_CMD_[self._FileType].values()),
 
             "create_directory_command"  : self.GetCreateDirectoryCommand(self.IntermediateDirectoryList),
             "custom_makefile_content"   : CustomMakefile
@@ -1174,8 +1174,8 @@ cleanlib:
 
             "toolchain_tag"             : PlatformInfo.ToolChain,
             "build_target"              : PlatformInfo.BuildTarget,
-            "shell_command_code"        : self._SHELL_CMD_[self._FileType].keys(),
-            "shell_command"             : self._SHELL_CMD_[self._FileType].values(),
+            "shell_command_code"        : list(self._SHELL_CMD_[self._FileType].keys()),
+            "shell_command"             : list(self._SHELL_CMD_[self._FileType].values()),
             "build_architecture_list"   : self._AutoGenObject.Arch,
             "architecture"              : self._AutoGenObject.Arch,
             "separator"                 : Separator,
@@ -1300,8 +1300,8 @@ class TopLevelMakefile(BuildFile):
 
             "toolchain_tag"             : PlatformInfo.ToolChain,
             "build_target"              : PlatformInfo.BuildTarget,
-            "shell_command_code"        : self._SHELL_CMD_[self._FileType].keys(),
-            "shell_command"             : self._SHELL_CMD_[self._FileType].values(),
+            "shell_command_code"        : list(self._SHELL_CMD_[self._FileType].keys()),
+            "shell_command"             : list(self._SHELL_CMD_[self._FileType].values()),
             'arch'                      : list(PlatformInfo.ArchList),
             "build_architecture_list"   : ','.join(PlatformInfo.ArchList),
             "separator"                 : Separator,
@@ -1346,4 +1346,3 @@ class TopLevelMakefile(BuildFile):
 # This acts like the main() function for the script, unless it is 'import'ed into another script.
 if __name__ == '__main__':
     pass
-

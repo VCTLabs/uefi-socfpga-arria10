@@ -44,7 +44,7 @@ gMACRO_PATTERN = re.compile("\$\(([_A-Z][_A-Z0-9]*)\)", re.UNICODE)
 #
 #
 def GetSplitValueList(String, SplitTag=DataType.TAB_VALUE_SPLIT, MaxSplit= -1):
-    return map(lambda l: l.strip(), String.split(SplitTag, MaxSplit))
+    return [l.strip() for l in String.split(SplitTag, MaxSplit)]
 
 ## MergeArches
 #
@@ -56,7 +56,7 @@ def GetSplitValueList(String, SplitTag=DataType.TAB_VALUE_SPLIT, MaxSplit= -1):
 # @param Arch:  The Arch to be added or merged
 #
 def MergeArches(Dict, Key, Arch):
-    if Key in Dict.keys():
+    if Key in list(Dict.keys()):
         Dict[Key].append(Arch)
     else:
         Dict[Key] = Arch.split()
@@ -435,7 +435,7 @@ def GetSingleValueOfKeyFromLines(Lines, Dictionary, CommentCharacter, KeySplitCh
                 #
                 LineList[1] = CleanString(LineList[1], CommentCharacter)
                 if ValueSplitFlag:
-                    Value = map(strip, LineList[1].split(ValueSplitCharacter))
+                    Value = list(map(strip, LineList[1].split(ValueSplitCharacter)))
                 else:
                     Value = CleanString(LineList[1], CommentCharacter).splitlines()
 
@@ -632,7 +632,7 @@ def SplitString(String):
 # @param StringList:  A list for strings to be converted
 #
 def ConvertToSqlString(StringList):
-    return map(lambda s: s.replace("'", "''") , StringList)
+    return [s.replace("'", "''") for s in StringList]
 
 ## Convert To Sql String
 #
@@ -680,7 +680,7 @@ def GetHelpTextList(HelpTextClassList):
 # @param String: the source string
 #
 def StringArrayLength(String):
-    if isinstance(String, unicode):
+    if isinstance(String, str):
         return (len(String) + 1) * 2 + 1
     elif String.startswith('L"'):
         return (len(String) - 3 + 1) * 2
@@ -940,14 +940,14 @@ def SplitPcdEntry(String):
 def IsMatchArch(Arch1, Arch2):
     if 'COMMON' in Arch1 or 'COMMON' in Arch2:
         return True
-    if isinstance(Arch1, basestring) and isinstance(Arch2, basestring):
+    if isinstance(Arch1, str) and isinstance(Arch2, str):
         if Arch1 == Arch2:
             return True
 
-    if isinstance(Arch1, basestring) and isinstance(Arch2, list):
+    if isinstance(Arch1, str) and isinstance(Arch2, list):
         return Arch1 in Arch2
 
-    if isinstance(Arch2, basestring) and isinstance(Arch1, list):
+    if isinstance(Arch2, str) and isinstance(Arch1, list):
         return Arch2 in Arch1
 
     if isinstance(Arch1, list) and isinstance(Arch2, list):

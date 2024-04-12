@@ -15,18 +15,18 @@
 ##
 # Import Modules
 #
-import Region
-import Fv
+from . import Region
+from . import Fv
 import Common.LongFilePathOs as os
-import StringIO
+import io
 import sys
 from struct import *
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 from CommonDataClass.FdfClass import FDClassObject
 from Common import EdkLogger
 from Common.BuildToolError import *
 from Common.Misc import SaveFileOnChange
-from GenFds import GenFds
+from .GenFds import GenFds
 
 ## generate FD
 #
@@ -46,7 +46,7 @@ class FD(FDClassObject):
     #   @retval string      Generated FD file name
     #
     def GenFd (self):
-        if self.FdUiName.upper() + 'fd' in GenFds.ImageBinDict.keys():
+        if self.FdUiName.upper() + 'fd' in list(GenFds.ImageBinDict.keys()):
             return GenFds.ImageBinDict[self.FdUiName.upper() + 'fd']
 
         #
@@ -65,10 +65,10 @@ class FD(FDClassObject):
         GenFdsGlobalVariable.VerboseLogger('################### Gen VTF ####################')
         self.GenVtfFile()
 
-        TempFdBuffer = StringIO.StringIO('')
+        TempFdBuffer = io.StringIO('')
         PreviousRegionStart = -1
         PreviousRegionSize = 1
-        
+
         for RegionObj in self.RegionList :
             if RegionObj.RegionType == 'CAPSULE':
                 continue
@@ -91,8 +91,8 @@ class FD(FDClassObject):
                 pass
             GenFdsGlobalVariable.VerboseLogger('Call each region\'s AddToBuffer function')
             RegionObj.AddToBuffer (TempFdBuffer, self.BaseAddress, self.BlockSizeList, self.ErasePolarity, GenFds.ImageBinDict, self.vtfRawDict, self.DefineVarDict)
-        
-        FdBuffer = StringIO.StringIO('')
+
+        FdBuffer = io.StringIO('')
         PreviousRegionStart = -1
         PreviousRegionSize = 1
         for RegionObj in self.RegionList :
@@ -189,11 +189,3 @@ class FD(FDClassObject):
     #
     def GenFlashMap (self):
         pass
-
-
-
-
-
-
-
-

@@ -62,7 +62,7 @@ class PcdClassObject(object):
         self.validateranges = validateranges
         self.validlists = validlists
         self.expressions = expressions
-        
+
     ## Convert the class to a string
     #
     #  Convert each member of the class to string
@@ -78,7 +78,7 @@ class PcdClassObject(object):
               'DefaultValue=' + str(self.DefaultValue) + ', ' + \
               'TokenValue=' + str(self.TokenValue) + ', ' + \
               'MaxDatumSize=' + str(self.MaxDatumSize) + ', '
-        for Item in self.SkuInfoList.values():
+        for Item in list(self.SkuInfoList.values()):
             Rtn = Rtn + 'SkuId=' + Item.SkuId + ', ' + 'SkuIdName=' + Item.SkuIdName
         Rtn = Rtn + ', IsOverrided=' + str(self.IsOverrided)
 
@@ -368,4 +368,3 @@ class PlatformBuildClassObject(object):
     #
     def __hash__(self):
         return hash(self.MetaFile)
-

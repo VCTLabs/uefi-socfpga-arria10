@@ -15,14 +15,14 @@ import sys
 import Common.LongFilePathOs as os
 import re
 import string
-import CodeFragmentCollector
-import FileProfile
+from . import CodeFragmentCollector
+from . import FileProfile
 from CommonDataClass import DataClass
-import Database
+from . import Database
 from Common import EdkLogger
-from EccToolError import *
-import EccGlobalData
-import MetaDataParser
+from .EccToolError import *
+from . import EccGlobalData
+from . import MetaDataParser
 
 IncludeFileListDict = {}
 AllIncludeFileListDict = {}
@@ -2270,7 +2270,7 @@ def CheckDoxygenTripleForwardSlash(FullFileName):
         for Result in ResultSet:
             CommentSet.append(Result)
     except:
-        print 'Unrecognized chars in comment of file %s', FullFileName
+        print('Unrecognized chars in comment of file %s', FullFileName)
 
 
     for Result in CommentSet:
@@ -2333,13 +2333,13 @@ def CheckFileHeaderDoxygenComments(FullFileName):
         if (len(CommentStrListTemp) <= 1):
             # For Mac
             CommentStrListTemp = CommentStr.split('\r')
-        # Skip the content before the file  header    
+        # Skip the content before the file  header
         for CommentLine in CommentStrListTemp:
             if CommentLine.strip().startswith('/** @file'):
                 FileStartFlag = True
             if FileStartFlag ==  True:
                 CommentStrList.append(CommentLine)
-                       
+
         ID = Result[1]
         Index = 0
         if CommentStrList and CommentStrList[0].strip().startswith('/** @file'):
@@ -2362,7 +2362,7 @@ def CheckFileHeaderDoxygenComments(FullFileName):
             if EccGlobalData.gConfig.HeaderCheckCFileCommentStartSpacesNum == '1' or EccGlobalData.gConfig.HeaderCheckAll == '1' or EccGlobalData.gConfig.CheckAll == '1':
                 if CommentLine.startswith('/** @file') == False and CommentLine.startswith('**/') == False and CommentLine.strip() and CommentLine.startswith('  ') == False:
                     PrintErrorMsg(ERROR_HEADER_CHECK_FILE, 'File header comment content should start with two spaces at each line', FileTable, ID)
-            
+
             CommentLine = CommentLine.strip()
             if CommentLine.startswith('Copyright'):
                 NoCopyrightFlag = False
@@ -2387,9 +2387,9 @@ def CheckFileHeaderDoxygenComments(FullFileName):
                     # Check whether C File header Comment's each reference at list should begin with a bullet character.
                     if EccGlobalData.gConfig.HeaderCheckCFileCommentReferenceFormat == '1' or EccGlobalData.gConfig.HeaderCheckAll == '1' or EccGlobalData.gConfig.CheckAll == '1':
                         if RefListFlag == True:
-                            if RefLine.strip() and RefLine.strip().startswith('**/') == False and RefLine.startswith('  -') == False:                            
-                                PrintErrorMsg(ERROR_HEADER_CHECK_FILE, 'Each reference on a separate line should begin with a bullet character ""-"" ', FileTable, ID)                    
-    
+                            if RefLine.strip() and RefLine.strip().startswith('**/') == False and RefLine.startswith('  -') == False:
+                                PrintErrorMsg(ERROR_HEADER_CHECK_FILE, 'Each reference on a separate line should begin with a bullet character ""-"" ', FileTable, ID)
+
     if NoHeaderCommentStartFlag:
         PrintErrorMsg(ERROR_DOXYGEN_CHECK_FILE_HEADER, 'File header comment should begin with ""/** @file""', FileTable, ID)
         return
@@ -2423,7 +2423,7 @@ def CheckFuncHeaderDoxygenComments(FullFileName):
         for Result in ResultSet:
             CommentSet.append(Result)
     except:
-        print 'Unrecognized chars in comment of file %s', FullFileName
+        print('Unrecognized chars in comment of file %s', FullFileName)
 
     # Func Decl check
     SqlStatement = """ select Modifier, Name, StartLine, ID, Value
@@ -2454,7 +2454,7 @@ def CheckFuncHeaderDoxygenComments(FullFileName):
         for Result in ResultSet:
             CommentSet.append(Result)
     except:
-        print 'Unrecognized chars in comment of file %s', FullFileName
+        print('Unrecognized chars in comment of file %s', FullFileName)
 
     SqlStatement = """ select Modifier, Header, StartLine, ID, Name
                        from Function
@@ -2618,10 +2618,10 @@ if __name__ == '__main__':
 #    CollectSourceCodeDataIntoDB(sys.argv[1])
     try:
         test_file = sys.argv[1]
-    except IndexError, v:
-        print "Usage: %s filename" % sys.argv[0]
+    except IndexError as v:
+        print("Usage: %s filename" % sys.argv[0])
         sys.exit(1)
     MsgList = CheckFuncHeaderDoxygenComments(test_file)
     for Msg in MsgList:
-        print Msg
-    print 'Done!'
+        print(Msg)
+    print('Done!')

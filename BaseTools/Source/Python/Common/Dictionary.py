@@ -14,8 +14,8 @@
 ##
 # Import Modules
 #
-import EdkLogger
-from DataType import *
+from . import EdkLogger
+from .DataType import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
 ## Convert a text file to a dictionary
@@ -55,10 +55,10 @@ def ConvertTextFileToDictionary(FileName, Dictionary, CommentCharacter, KeySplit
 #
 def printDict(Dict):
     if Dict != None:
-        KeyList = Dict.keys()
+        KeyList = list(Dict.keys())
         for Key in KeyList:
             if Dict[Key] != '':
-                print Key + ' = ' + str(Dict[Key])
+                print(Key + ' = ' + str(Dict[Key]))
 
 ## Print the dictionary
 #
@@ -71,6 +71,6 @@ def printList(Key, List):
     if type(List) == type([]):
         if len(List) > 0:
             if Key.find(TAB_SPLIT) != -1:
-                print "\n" + Key
+                print("\n" + Key)
                 for Item in List:
-                    print Item
+                    print(Item)

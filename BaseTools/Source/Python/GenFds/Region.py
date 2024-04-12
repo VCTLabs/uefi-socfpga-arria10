@@ -16,8 +16,8 @@
 # Import Modules
 #
 from struct import *
-from GenFdsGlobalVariable import GenFdsGlobalVariable
-import StringIO
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
+import io
 from CommonDataClass.FdfClass import RegionClassObject
 import Common.LongFilePathOs as os
 from stat import *
@@ -77,7 +77,7 @@ class Region(RegionClassObject):
                         EdkLogger.error("GenFds", FILE_NOT_FOUND, ExtraData=RegionData)
 
                     FileName = RegionData
-                elif RegionData.upper() + 'fv' in ImageBinDict.keys():
+                elif RegionData.upper() + 'fv' in list(ImageBinDict.keys()):
                     GenFdsGlobalVariable.InfLogger('   Region Name = FV')
                     FileName = ImageBinDict[RegionData.upper() + 'fv']
                 else:
@@ -85,7 +85,7 @@ class Region(RegionClassObject):
                     # Generate FvImage.
                     #
                     FvObj = None
-                    if RegionData.upper() in GenFdsGlobalVariable.FdfParser.Profile.FvDict.keys():
+                    if RegionData.upper() in list(GenFdsGlobalVariable.FdfParser.Profile.FvDict.keys()):
                         FvObj = GenFdsGlobalVariable.FdfParser.Profile.FvDict.get(RegionData.upper())
 
                     if FvObj != None :
@@ -99,7 +99,7 @@ class Region(RegionClassObject):
                         if self.FvAddress % FvAlignValue != 0:
                             EdkLogger.error("GenFds", GENFDS_ERROR,
                                             "FV (%s) is NOT %s Aligned!" % (FvObj.UiFvName, FvObj.FvAlignment))
-                        FvBuffer = StringIO.StringIO('')
+                        FvBuffer = io.StringIO('')
                         FvBaseAddress = '0x%X' %self.FvAddress
                         BlockSize = None
                         BlockNum = None
@@ -156,7 +156,7 @@ class Region(RegionClassObject):
                         EdkLogger.error("GenFds", FILE_NOT_FOUND, ExtraData=RegionData)
 
                     FileName = RegionData
-                elif RegionData.upper() + 'cap' in ImageBinDict.keys():
+                elif RegionData.upper() + 'cap' in list(ImageBinDict.keys()):
                     GenFdsGlobalVariable.InfLogger('   Region Name = CAPSULE')
                     FileName = ImageBinDict[RegionData.upper() + 'cap']
                 else:
@@ -164,7 +164,7 @@ class Region(RegionClassObject):
                     # Generate Capsule image and Put it into FD buffer
                     #
                     CapsuleObj = None
-                    if RegionData.upper() in GenFdsGlobalVariable.FdfParser.Profile.CapsuleDict.keys():
+                    if RegionData.upper() in list(GenFdsGlobalVariable.FdfParser.Profile.CapsuleDict.keys()):
                         CapsuleObj = GenFdsGlobalVariable.FdfParser.Profile.CapsuleDict[RegionData.upper()]
 
                     if CapsuleObj != None :
@@ -282,7 +282,7 @@ class Region(RegionClassObject):
 
         AlignValue = int(Str)*Granu
         return AlignValue
- 
+
     ## BlockSizeOfRegion()
     #
     #   @param  BlockSizeList        List of block information
@@ -299,7 +299,7 @@ class Region(RegionClassObject):
             if self.Offset >= End:
                 Start = End
                 continue
-            # region located in current blocks 
+            # region located in current blocks
             else:
                 # region ended within current blocks
                 if self.Offset + self.Size <= End:
@@ -316,7 +316,7 @@ class Region(RegionClassObject):
                     Start = End
                     ExpectedList.append((BlockSize, UsedBlockNum))
                     RemindingSize -= BlockSize * UsedBlockNum
-                   
+
         if FvObj.BlockSizeList == []:
             FvObj.BlockSizeList = ExpectedList
         else:
@@ -336,7 +336,7 @@ class Region(RegionClassObject):
             # check whether the BlockStatements in FV section is appropriate
             ExpectedListData = ''
             for Item in ExpectedList:
-                ExpectedListData += "BlockSize = 0x%x\n\tNumBlocks = 0x%x\n\t"%Item 
+                ExpectedListData += "BlockSize = 0x%x\n\tNumBlocks = 0x%x\n\t"%Item
             Index = 0
             for Item in FvObj.BlockSizeList:
                 if Item[0] != ExpectedList[Index][0]:
@@ -350,6 +350,3 @@ class Region(RegionClassObject):
                                         %FvObj.UiFvName, ExtraData = ExpectedListData)
                 else:
                     Index += 1
-
-            
-

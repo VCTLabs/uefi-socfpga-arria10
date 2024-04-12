@@ -15,11 +15,11 @@
 ##
 # Import Modules
 #
-import Section
-from Ffs import Ffs
+from . import Section
+from .Ffs import Ffs
 import subprocess
 import Common.LongFilePathOs as os
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 from CommonDataClass.FdfClass import UiSectionClassObject
 from Common.LongFilePathSupport import OpenLongFilePath as open
 

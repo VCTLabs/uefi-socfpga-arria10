@@ -50,13 +50,13 @@ class PackageFile:
             self._Files = {}
             for Filename in self._ZipFile.namelist():
                 self._Files[os.path.normpath(Filename)] = Filename
-        except BaseException, Xstr:
-            Logger.Error("PackagingTool", FILE_OPEN_FAILURE, 
+        except BaseException as Xstr:
+            Logger.Error("PackagingTool", FILE_OPEN_FAILURE,
                             ExtraData="%s (%s)" % (FileName, str(Xstr)))
 
         BadFile = self._ZipFile.testzip()
         if BadFile != None:
-            Logger.Error("PackagingTool", FILE_CHECKSUM_FAILURE, 
+            Logger.Error("PackagingTool", FILE_CHECKSUM_FAILURE,
                             ExtraData="[%s] in %s" % (BadFile, FileName))
     
     def GetZipFile(self):
@@ -105,8 +105,8 @@ class PackageFile:
                             ExtraData="[%s] in %s" % (Which, self._FileName))
         try:
             FileContent = self._ZipFile.read(self._Files[Which])
-        except BaseException, Xstr:
-            Logger.Error("PackagingTool", FILE_DECOMPRESS_FAILURE, 
+        except BaseException as Xstr:
+            Logger.Error("PackagingTool", FILE_DECOMPRESS_FAILURE,
                             ExtraData="[%s] in %s (%s)" % (Which, \
                                                            self._FileName, \
                                                            str(Xstr)))
@@ -118,20 +118,20 @@ class PackageFile:
                 return
             else:
                 ToFile = __FileHookOpen__(ToDest, 'wb')
-        except BaseException, Xstr:
-            Logger.Error("PackagingTool", FILE_OPEN_FAILURE, 
+        except BaseException as Xstr:
+            Logger.Error("PackagingTool", FILE_OPEN_FAILURE,
                             ExtraData="%s (%s)" % (ToDest, str(Xstr)))
 
         try:
             ToFile.write(FileContent)
             ToFile.close()
-        except BaseException, Xstr:
-            Logger.Error("PackagingTool", FILE_WRITE_FAILURE, 
+        except BaseException as Xstr:
+            Logger.Error("PackagingTool", FILE_WRITE_FAILURE,
                             ExtraData="%s (%s)" % (ToDest, str(Xstr)))
 
     ## Remove the file
-    # 
-    # @param Files:  the removed files 
+    #
+    # @param Files:  the removed files
     #
     def Remove(self, Files):
         TmpDir = os.path.join(tempfile.gettempdir(), ".packaging")
@@ -224,13 +224,13 @@ class PackageFile:
                     return
             Logger.Info("packing ..." + File)
             self._ZipFile.write(File, ArcName)
-        except BaseException, Xstr:
+        except BaseException as Xstr:
             Logger.Error("PackagingTool", FILE_COMPRESS_FAILURE,
                             ExtraData="%s (%s)" % (File, str(Xstr)))
 
     ## Write data to the packed file
-    # 
-    # @param Data:  data to write 
+    #
+    # @param Data:  data to write
     # @param ArcName:  the Arc Name 
     #
     def PackData(self, Data, ArcName):
@@ -238,12 +238,12 @@ class PackageFile:
             if os.path.splitext(ArcName)[1].lower() == '.pkg':
                 Data = Data.encode('utf_8')
             self._ZipFile.writestr(ArcName, Data)
-        except BaseException, Xstr:
+        except BaseException as Xstr:
             Logger.Error("PackagingTool", FILE_COMPRESS_FAILURE,
                             ExtraData="%s (%s)" % (ArcName, str(Xstr)))
 
     ## Close file
-    # 
+    #
     #
     def Close(self):
         self._ZipFile.close()

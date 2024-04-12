@@ -90,13 +90,13 @@ def Main(Options = None):
 
     try:
         DataBase = GlobalData.gDB
-        InventoryDistInstalled(DataBase)     
-        ReturnCode = 0       
-    except FatalError, XExcept:
+        InventoryDistInstalled(DataBase)
+        ReturnCode = 0
+    except FatalError as XExcept:
         ReturnCode = XExcept.args[0]
         if Logger.GetLevel() <= Logger.DEBUG_9:
             Logger.Quiet(ST.MSG_PYTHON_ON % (python_version(), platform) + format_exc())
-    except KeyboardInterrupt: 
+    except KeyboardInterrupt:
         ReturnCode = ABORT_ERROR
         if Logger.GetLevel() <= Logger.DEBUG_9:
             Logger.Quiet(ST.MSG_PYTHON_ON % (python_version(), platform) + format_exc())

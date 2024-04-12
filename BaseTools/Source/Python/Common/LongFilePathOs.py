@@ -12,7 +12,7 @@
 #
 
 import os
-import LongFilePathOsPath
+from . import LongFilePathOsPath
 from Common.LongFilePathSupport import LongFilePath
 from Common.LongFilePathSupport import UniToStr
 
@@ -33,7 +33,7 @@ def rmdir(path):
 def mkdir(path):
     return os.mkdir(LongFilePath(path))
 
-def makedirs(name, mode=0777):
+def makedirs(name, mode):
     return os.makedirs(LongFilePath(name), mode)
 
 def rename(old, new):
@@ -53,7 +53,7 @@ def utime(path, times):
 
 def listdir(path):
     List = []
-    uList = os.listdir(u"%s" % LongFilePath(path))
+    uList = os.listdir("%s" % LongFilePath(path))
     for Item in uList:
         List.append(UniToStr(Item))
     return List

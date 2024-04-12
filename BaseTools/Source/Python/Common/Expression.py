@@ -15,7 +15,7 @@
 from Common.GlobalData import *
 from CommonDataClass.Exceptions import BadExpression
 from CommonDataClass.Exceptions import WrnExpression
-from Misc import GuidStringToGuidStructureString
+from .Misc import GuidStringToGuidStructureString
 
 ERR_STRING_EXPR         = 'This operator cannot be used in string expression: [%s].'
 ERR_SNYTAX              = 'Syntax error, the rest of expression cannot be evaluated: [%s].'
@@ -148,7 +148,7 @@ class ValueExpression(object):
 
         TypeDict = {
             type(0)  : 0,
-            type(0L) : 0,
+            type(0) : 0,
             type('') : 1,
             type(True) : 2
         }
@@ -198,7 +198,7 @@ class ValueExpression(object):
         }
         try:
             Val = eval(EvalStr, {}, Dict)
-        except Exception, Excpt:
+        except Exception as Excpt:
             raise BadExpression(str(Excpt))
 
         if Operator in ['and', 'or']:
@@ -306,7 +306,7 @@ class ValueExpression(object):
             Op = self._Token
             try:
                 Val = self.Eval(Op, Val, EvalFunc())
-            except WrnExpression, Warn:
+            except WrnExpression as Warn:
                 self._WarnExcept = Warn
                 Val = Warn.result
         return Val
@@ -342,7 +342,7 @@ class ValueExpression(object):
                 Op += ' ' + self._Token
             try:
                 Val = self.Eval(Op, Val, self._RelExpr())
-            except WrnExpression, Warn:
+            except WrnExpression as Warn:
                 self._WarnExcept = Warn
                 Val = Warn.result
         return Val
@@ -361,7 +361,7 @@ class ValueExpression(object):
             Val = self._UnaryExpr()
             try:
                 return self.Eval('not', Val)
-            except WrnExpression, Warn:
+            except WrnExpression as Warn:
                 self._WarnExcept = Warn
                 return Warn.result
         return self._IdenExpr()
@@ -617,14 +617,14 @@ class ValueExpression(object):
 if __name__ == '__main__':
     pass
     while True:
-        input = raw_input('Input expr: ')
+        input = input('Input expr: ')
         if input in 'qQ':
             break
         try:
-            print ValueExpression(input)(True)
-            print ValueExpression(input)(False)
-        except WrnExpression, Ex:
-            print Ex.result
-            print str(Ex)
-        except Exception, Ex:
-            print str(Ex)
+            print(ValueExpression(input)(True))
+            print(ValueExpression(input)(False))
+        except WrnExpression as Ex:
+            print(Ex.result)
+            print(str(Ex))
+        except Exception as Ex:
+            print(str(Ex))

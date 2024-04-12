@@ -26,10 +26,9 @@ modules = (
 
 
 def TheTestSuite():
-    suites = map(lambda module: module.TheTestSuite(), modules)
+    suites = [module.TheTestSuite() for module in modules]
     return unittest.TestSuite(suites)
 
 if __name__ == '__main__':
     allTests = TheTestSuite()
     unittest.TextTestRunner().run(allTests)
-

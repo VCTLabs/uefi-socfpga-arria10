@@ -22,7 +22,7 @@ from CommonDataClass.DataClass import FileClass
 
 ## Convert to SQL required string format
 def ConvertToSqlString(StringList):
-    return map(lambda s: "'" + s.replace("'", "''") + "'", StringList)
+    return ["'" + s.replace("'", "''") + "'" for s in StringList]
 
 ## TableFile
 #
@@ -335,4 +335,3 @@ class TableDataModel(Table):
             CrossIndex = Item[0]
 
         return CrossIndex
-

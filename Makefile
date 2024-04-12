@@ -87,8 +87,8 @@ ifdef ComSpec
 # Windows
 else
 # Linux
-export GCC48_ARM_PREFIX=arm-linux-gnueabihf-
-export GCC48_AARCH64_PREFIX=aarch64-linux-gnu-
+GCC5_ARM_PREFIX ?= arm-linux-gnueabihf-
+GCC5_AARCH64_PREFIX ?= aarch64-linux-gnu-
 endif
 
 #-----------------------------------------------------------------------------
@@ -513,7 +513,7 @@ build_firmware:
 # Shell Scripts: build_mkpimage
 #-----------------------------------------------------------------------------
 build_mkpimage:
-	@$(ECHO_START) mkpimage .FD to .ROM : $(PEI_FINAL_ROM)  $(DXE_FINAL_ROM)$(ECHO_END)
+	@$(ECHO_START) mkimage .FD to .ROM : $(PEI_FINAL_ROM)  $(DXE_FINAL_ROM)$(ECHO_END)
 	@mkimage -A arm -T socfpgaimage_v1 -C none -a $(ENTRY_MINUS_40HEX) -e $(ENTRY_MINUS_40HEX) -d $(PEI_FD_FILENAME_FULLPATH) $(PEI_FINAL_ROM)x1
 	cat $(PEI_FINAL_ROM)x1 $(PEI_FINAL_ROM)x1 $(PEI_FINAL_ROM)x1 $(PEI_FINAL_ROM)x1 > $(PEI_FINAL_ROM)
 	cat $(PEI_FINAL_ROM)x1 > $(PEI_SMALLER_x1_ROM)

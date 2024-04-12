@@ -22,7 +22,7 @@ import codecs
 import copy
 
 from UserDict import IterableUserDict
-from cStringIO import StringIO
+from io import StringIO
 from array import array
 from Common.LongFilePathSupport import OpenLongFilePath as open
 from CommonDataClass import *
@@ -30,7 +30,7 @@ from Common.Misc import sdict, GuidStructureStringToGuidString
 
 import Common.EdkLogger as EdkLogger
 
-import EotGlobalData
+from . import EotGlobalData
 
 # Global definiton
 gFfsPrintTitle  = "%-36s  %-21s %8s %8s %8s  %-4s %-36s" % ("GUID", "TYPE", "OFFSET", "SIZE", "FREE", "ALIGN", "NAME")
@@ -297,7 +297,7 @@ class FirmwareVolume(Image):
         IsLoad = True
         for Protocol in self.ProtocolList:
             for Callback in self.ProtocolList[Protocol][1]:
-                if Callback[0] not in self.OrderedFfsDict.keys():
+                if Callback[0] not in list(self.OrderedFfsDict.keys()):
                     IsLoad = False
                     continue
             if IsLoad:
@@ -351,7 +351,7 @@ class FirmwareVolume(Image):
             if Ffs.Type == 0x07:
                 # Get Depex
                 IsFoundDepex = False
-                for Section in Ffs.Sections.values():
+                for Section in list(Ffs.Sections.values()):
                     # Find Depex
                     if Section.Type == 0x13:
                         IsFoundDepex = True
@@ -415,7 +415,7 @@ class FirmwareVolume(Image):
             Ffs = self.UnDispatchedFfsDict[FfsID]
             if Ffs.Type == 0x06 or Ffs.Type == 0x08:
                 # Get Depex
-                for Section in Ffs.Sections.values():
+                for Section in list(Ffs.Sections.values()):
                     if Section.Type == 0x1B:
                         CouldBeLoaded, DepexString, FileDepex = self.ParseDepex(Section._SubImages[4], 'Ppi')
                         break
@@ -556,7 +556,7 @@ class CompressedImage(Image):
 
     def _GetSections(m):
         try:
-            import EfiCompressor
+            from . import EfiCompressor
             TmpData = EfiCompressor.FrameworkDecompress(
                                         m[m._HEADER_SIZE_:],
                                         len(m) - m._HEADER_SIZE_
@@ -564,7 +564,7 @@ class CompressedImage(Image):
             DecData = array('B')
             DecData.fromstring(TmpData)
         except:
-            import EfiCompressor
+            from . import EfiCompressor
             TmpData = EfiCompressor.UefiDecompress(
                                         m[m._HEADER_SIZE_:],
                                         len(m) - m._HEADER_SIZE_
@@ -664,7 +664,7 @@ class GuidDefinedImage(Image):
                 SectionList.append(Sec)
         elif Guid == m.TIANO_COMPRESS_GUID:
             try:
-                import EfiCompressor
+                from . import EfiCompressor
                 # skip the header
                 Offset = m.DataOffset - 4
                 TmpData = EfiCompressor.FrameworkDecompress(m[Offset:], len(m)-Offset)
@@ -685,7 +685,7 @@ class GuidDefinedImage(Image):
                 pass
         elif Guid == m.LZMA_COMPRESS_GUID:
             try:
-                import LzmaCompressor
+                from . import LzmaCompressor
                 # skip the header
                 Offset = m.DataOffset - 4
                 TmpData = LzmaCompressor.LzmaDecompress(m[Offset:], len(m)-Offset)
@@ -1188,17 +1188,17 @@ class PeImage:
         self.Machine, self.NumberOfSections, self.SizeOfOptionalHeader = \
             self._FileHeader.unpack_from(self._PeImageBuf, self.Offset + FileHeaderOffset)
 
-        print "Machine=%x NumberOfSections=%x SizeOfOptionalHeader=%x" % (self.Machine, self.NumberOfSections, self.SizeOfOptionalHeader)
+        print("Machine=%x NumberOfSections=%x SizeOfOptionalHeader=%x" % (self.Machine, self.NumberOfSections, self.SizeOfOptionalHeader))
         # optional header follows the FILE header
         OptionalHeaderOffset = FileHeaderOffset + struct.calcsize(self._FileHeaderFormat)
         Magic, self.SizeOfImage, SizeOfHeaders, self.Checksum, NumberOfRvaAndSizes = \
             self._OptionalHeader32.unpack_from(self._PeImageBuf, self.Offset + OptionalHeaderOffset)
-        print "Magic=%x SizeOfImage=%x SizeOfHeaders=%x, Checksum=%x, NumberOfRvaAndSizes=%x" % (Magic, self.SizeOfImage, SizeOfHeaders, self.Checksum, NumberOfRvaAndSizes)
+        print("Magic=%x SizeOfImage=%x SizeOfHeaders=%x, Checksum=%x, NumberOfRvaAndSizes=%x" % (Magic, self.SizeOfImage, SizeOfHeaders, self.Checksum, NumberOfRvaAndSizes))
 
         PeImageSectionTableOffset = OptionalHeaderOffset + self.SizeOfOptionalHeader
         PeSections = PeSectionTable(self._PeImageBuf, self.Offset + PeImageSectionTableOffset, self.NumberOfSections)
 
-        print "%x" % PeSections.GetFileAddress(0x3920)
+        print("%x" % PeSections.GetFileAddress(0x3920))
 
 ## PeSectionTable() class
 #
@@ -1213,7 +1213,7 @@ class PeSectionTable:
             SectionHeader = PeSectionHeader(Buf, SectionHeaderOffset)
             self._SectionList.append(SectionHeader)
             SectionHeaderOffset += len(SectionHeader)
-            print SectionHeader
+            print(SectionHeader)
 
     def GetFileAddress(self, Rva):
         for PeSection in self._SectionList:
@@ -1409,8 +1409,8 @@ def Main():
     try:
         Option = GetOptions()
         build.main()
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         return 1
 
     return 0
@@ -1433,7 +1433,7 @@ if __name__ == '__main__':
             fv = FirmwareVolume("FVRECOVERY")
             fv.frombuffer(buf, 0, len(buf))
             #fv.Dispatch(None)
-            print fv
+            print(fv)
         elif FilePath.endswith(".efi"):
             fd = open(FilePath, 'rb')
             buf = array('B')

@@ -15,11 +15,11 @@
 ##
 # Import Modules
 #
-import Section
-import StringIO
-from Ffs import Ffs
+from . import Section
+import io
+from .Ffs import Ffs
 import subprocess
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 import Common.LongFilePathOs as os
 from CommonDataClass.FdfClass import FvImageSectionClassObject
 from Common import EdkLogger
@@ -69,7 +69,7 @@ class FvImageSection(FvImageSectionClassObject):
         # Generate Fv
         #
         if self.FvName != None:
-            Buffer = StringIO.StringIO('')
+            Buffer = io.StringIO('')
             Fv = GenFdsGlobalVariable.FdfParser.Profile.FvDict.get(self.FvName)
             if Fv != None:
                 self.Fv = Fv

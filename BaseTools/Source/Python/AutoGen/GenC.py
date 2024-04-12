@@ -21,8 +21,8 @@ from Common.BuildToolError import *
 from Common.DataType import *
 from Common.Misc import *
 from Common.String import StringToArray
-from StrGather import *
-from GenPcdDb import CreatePcdDatabaseCode
+from .StrGather import *
+from .GenPcdDb import CreatePcdDatabaseCode
 
 ## PCD type string
 gItemTypeStringDatabase  = {
@@ -662,7 +662,7 @@ gModuleTypeHeaderFile = {
     "USER_DEFINED"      :   [gBasicHeaderFile]
 }
 
-## Autogen internal worker macro to define DynamicEx PCD name includes both the TokenSpaceGuidName 
+## Autogen internal worker macro to define DynamicEx PCD name includes both the TokenSpaceGuidName
 #  the TokenName and Guid comparison to avoid define name collisions.
 #
 #   @param      Info        The ModuleAutoGen object
@@ -684,7 +684,7 @@ def DynExPcdTokenNumberMapping(Info, AutoGenH):
         return
     AutoGenH.Append('\n#define COMPAREGUID(Guid1, Guid2) (BOOLEAN)(*(CONST UINT64*)Guid1 == *(CONST UINT64*)Guid2 && *((CONST UINT64*)Guid1 + 1) == *((CONST UINT64*)Guid2 + 1))\n')
     # AutoGen for each PCD listed in a [PcdEx] section of a Module/Lib INF file.
-    # Auto generate a macro for each TokenName that takes a Guid pointer as a parameter.  
+    # Auto generate a macro for each TokenName that takes a Guid pointer as a parameter.
     # Use the Guid pointer to see if it matches any of the token space GUIDs.
     TokenCNameList = []
     for TokenCName in ExTokenCNameList:
@@ -697,15 +697,15 @@ def DynExPcdTokenNumberMapping(Info, AutoGenH):
                 Index = Index + 1
                 if Index == 1:
                     AutoGenH.Append('\n#define __PCD_%s_ADDR_CMP(GuidPtr)  (' % (Pcd.TokenCName))
-                    AutoGenH.Append('\\\n  (GuidPtr == &%s) ? _PCD_TOKEN_%s_%s:' 
+                    AutoGenH.Append('\\\n  (GuidPtr == &%s) ? _PCD_TOKEN_%s_%s:'
                                     % (Pcd.TokenSpaceGuidCName, Pcd.TokenSpaceGuidCName, Pcd.TokenCName))
                 else:
-                    AutoGenH.Append('\\\n  (GuidPtr == &%s) ? _PCD_TOKEN_%s_%s:' 
+                    AutoGenH.Append('\\\n  (GuidPtr == &%s) ? _PCD_TOKEN_%s_%s:'
                                     % (Pcd.TokenSpaceGuidCName, Pcd.TokenSpaceGuidCName, Pcd.TokenCName))
                 if Index == Count:
                     AutoGenH.Append('0 \\\n  )\n')
                 TokenCNameList.append(TokenCName)
-    
+
     TokenCNameList = []
     for TokenCName in ExTokenCNameList:
         if TokenCName in TokenCNameList:
@@ -718,14 +718,14 @@ def DynExPcdTokenNumberMapping(Info, AutoGenH):
                 if Index == 1:
                     AutoGenH.Append('\n#define __PCD_%s_VAL_CMP(GuidPtr)  (' % (Pcd.TokenCName))
                     AutoGenH.Append('\\\n  (GuidPtr == NULL) ? 0:')
-                    AutoGenH.Append('\\\n  COMPAREGUID (GuidPtr, &%s) ? _PCD_TOKEN_%s_%s:' 
+                    AutoGenH.Append('\\\n  COMPAREGUID (GuidPtr, &%s) ? _PCD_TOKEN_%s_%s:'
                                     % (Pcd.TokenSpaceGuidCName, Pcd.TokenSpaceGuidCName, Pcd.TokenCName))
                 else:
-                    AutoGenH.Append('\\\n  COMPAREGUID (GuidPtr, &%s) ? _PCD_TOKEN_%s_%s:' 
+                    AutoGenH.Append('\\\n  COMPAREGUID (GuidPtr, &%s) ? _PCD_TOKEN_%s_%s:'
                                     % (Pcd.TokenSpaceGuidCName, Pcd.TokenSpaceGuidCName, Pcd.TokenCName))
                 if Index == Count:
                     AutoGenH.Append('0 \\\n  )\n')
-                    # Autogen internal worker macro to compare GUIDs.  Guid1 is a pointer to a GUID.  
+                    # Autogen internal worker macro to compare GUIDs.  Guid1 is a pointer to a GUID.
                     # Guid2 is a C name for a GUID. Compare pointers first because optimizing compiler
                     # can do this at build time on CONST GUID pointers and optimize away call to COMPAREGUID().
                     #  COMPAREGUID() will only be used if the Guid passed in is local to the module.
@@ -773,22 +773,22 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
     PatchPcdSizeTokenName = '_PCD_PATCHABLE_' + Pcd.TokenCName +'_SIZE'
     PatchPcdSizeVariableName = '_gPcd_BinaryPatch_Size_' + Pcd.TokenCName
     FixPcdSizeTokenName = '_PCD_SIZE_' + Pcd.TokenCName
-    
+
     if Pcd.Type in gDynamicExPcd:
         TokenNumber = int(Pcd.TokenValue, 0)
-        # Add TokenSpaceGuidValue value to PcdTokenName to discriminate the DynamicEx PCDs with 
+        # Add TokenSpaceGuidValue value to PcdTokenName to discriminate the DynamicEx PCDs with
         # different Guids but same TokenCName
         PcdExTokenName = '_PCD_TOKEN_' + Pcd.TokenSpaceGuidCName + '_' + Pcd.TokenCName
         AutoGenH.Append('\n#define %s  %dU\n' % (PcdExTokenName, TokenNumber))
     else:
         if (Pcd.TokenCName, Pcd.TokenSpaceGuidCName) not in PcdTokenNumber:
-            # If one of the Source built modules listed in the DSC is not listed in FDF modules, 
-            # and the INF lists a PCD can only use the PcdsDynamic access method (it is only 
-            # listed in the DEC file that declares the PCD as PcdsDynamic), then build tool will 
-            # report warning message notify the PI that they are attempting to build a module 
-            # that must be included in a flash image in order to be functional. These Dynamic PCD 
-            # will not be added into the Database unless it is used by other modules that are 
-            # included in the FDF file. 
+            # If one of the Source built modules listed in the DSC is not listed in FDF modules,
+            # and the INF lists a PCD can only use the PcdsDynamic access method (it is only
+            # listed in the DEC file that declares the PCD as PcdsDynamic), then build tool will
+            # report warning message notify the PI that they are attempting to build a module
+            # that must be included in a flash image in order to be functional. These Dynamic PCD
+            # will not be added into the Database unless it is used by other modules that are
+            # included in the FDF file.
             # In this case, just assign an invalid token number to make it pass build.
             if Pcd.Type in PCD_DYNAMIC_TYPE_LIST:
                 TokenNumber = 0
@@ -816,7 +816,7 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
     SetModeName = '_PCD_SET_MODE_' + gDatumSizeStringDatabaseH[Pcd.DatumType] + '_' + Pcd.TokenCName
     SetModeStatusName = '_PCD_SET_MODE_' + gDatumSizeStringDatabaseH[Pcd.DatumType] + '_S_' + Pcd.TokenCName
     GetModeSizeName = '_PCD_GET_MODE_SIZE' + '_' + Pcd.TokenCName
-    
+
     PcdExCNameList  = []
     if Pcd.Type in gDynamicExPcd:
         if Info.IsLibrary:
@@ -919,7 +919,7 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
                                     "Too large PCD value for datum type [%s] of PCD %s.%s" % (Pcd.DatumType, Pcd.TokenSpaceGuidCName, Pcd.TokenCName),
                                     ExtraData="[%s]" % str(Info))
                 if not Value.endswith('U'):
-                    Value += 'U'                    
+                    Value += 'U'
             elif Pcd.DatumType == 'UINT8':
                 if ValueNumber < 0:
                     EdkLogger.error("build", AUTOGEN_ERROR,
@@ -971,7 +971,7 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
             PcdValueName = '_PCD_PATCHABLE_VALUE_' + Pcd.TokenCName
         else:
             PcdValueName = '_PCD_VALUE_' + Pcd.TokenCName
-            
+
         if Pcd.DatumType == 'VOID*':
             #
             # For unicode, UINT16 array will be generated, so the alignment of unicode is guaranteed.
@@ -986,12 +986,12 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
                 AutoGenC.Append('GLOBAL_REMOVE_IF_UNREFERENCED %s UINT8 %s%s = %s;\n' % (Const, PcdVariableName, Array, Value))
                 AutoGenH.Append('extern %s UINT8 %s%s;\n' %(Const, PcdVariableName, Array))
                 AutoGenH.Append('#define %s  %s%s\n' %(GetModeName, Type, PcdVariableName))
-                
+
             PcdDataSize = GetPcdSize(Pcd)
             if Pcd.Type == TAB_PCDS_FIXED_AT_BUILD:
                 AutoGenH.Append('#define %s %s\n' % (FixPcdSizeTokenName, PcdDataSize))
                 AutoGenH.Append('#define %s  %s \n' % (GetModeSizeName,FixPcdSizeTokenName))
-            
+
             if Pcd.Type == TAB_PCDS_PATCHABLE_IN_MODULE:
                 AutoGenH.Append('#define %s %s\n' % (PatchPcdSizeTokenName, Pcd.MaxDatumSize))
                 AutoGenH.Append('#define %s  %s \n' % (GetModeSizeName,PatchPcdSizeVariableName))
@@ -1002,10 +1002,10 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
             AutoGenC.Append('volatile %s %s %s = %s;\n' %(Const, Pcd.DatumType, PcdVariableName, PcdValueName))
             AutoGenH.Append('extern volatile %s  %s  %s%s;\n' % (Const, Pcd.DatumType, PcdVariableName, Array))
             AutoGenH.Append('#define %s  %s%s\n' % (GetModeName, Type, PcdVariableName))
-            
+
             PcdDataSize = GetPcdSize(Pcd)
             AutoGenH.Append('#define %s %s\n' % (PatchPcdSizeTokenName, PcdDataSize))
-            
+
             AutoGenH.Append('#define %s  %s \n' % (GetModeSizeName,PatchPcdSizeVariableName))
             AutoGenH.Append('extern UINTN %s; \n' % PatchPcdSizeVariableName)
             AutoGenC.Append('GLOBAL_REMOVE_IF_UNREFERENCED UINTN %s = %s;\n' % (PatchPcdSizeVariableName,PcdDataSize))
@@ -1013,7 +1013,7 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
             PcdDataSize = GetPcdSize(Pcd)
             AutoGenH.Append('#define %s %s\n' % (FixPcdSizeTokenName, PcdDataSize))
             AutoGenH.Append('#define %s  %s \n' % (GetModeSizeName,FixPcdSizeTokenName))
-            
+
             AutoGenH.Append('#define %s  %s\n' %(PcdValueName, Value))
             AutoGenC.Append('GLOBAL_REMOVE_IF_UNREFERENCED %s %s %s = %s;\n' %(Const, Pcd.DatumType, PcdVariableName, PcdValueName))
             AutoGenH.Append('extern %s  %s  %s%s;\n' % (Const, Pcd.DatumType, PcdVariableName, Array))
@@ -1044,7 +1044,7 @@ def CreateLibraryPcdCode(Info, AutoGenC, AutoGenH, Pcd):
     FixPcdSizeTokenName = '_PCD_SIZE_' + Pcd.TokenCName
     PatchPcdSizeTokenName = '_PCD_PATCHABLE_' + Pcd.TokenCName +'_SIZE'
     PatchPcdSizeVariableName = '_gPcd_BinaryPatch_Size_' + Pcd.TokenCName
-    
+
     #
     # Write PCDs
     #
@@ -1052,13 +1052,13 @@ def CreateLibraryPcdCode(Info, AutoGenC, AutoGenH, Pcd):
         TokenNumber = int(Pcd.TokenValue, 0)
     else:
         if (Pcd.TokenCName, Pcd.TokenSpaceGuidCName) not in PcdTokenNumber:
-            # If one of the Source built modules listed in the DSC is not listed in FDF modules, 
-            # and the INF lists a PCD can only use the PcdsDynamic access method (it is only 
-            # listed in the DEC file that declares the PCD as PcdsDynamic), then build tool will 
-            # report warning message notify the PI that they are attempting to build a module 
-            # that must be included in a flash image in order to be functional. These Dynamic PCD 
-            # will not be added into the Database unless it is used by other modules that are 
-            # included in the FDF file. 
+            # If one of the Source built modules listed in the DSC is not listed in FDF modules,
+            # and the INF lists a PCD can only use the PcdsDynamic access method (it is only
+            # listed in the DEC file that declares the PCD as PcdsDynamic), then build tool will
+            # report warning message notify the PI that they are attempting to build a module
+            # that must be included in a flash image in order to be functional. These Dynamic PCD
+            # will not be added into the Database unless it is used by other modules that are
+            # included in the FDF file.
             # In this case, just assign an invalid token number to make it pass build.
             if Pcd.Type in PCD_DYNAMIC_TYPE_LIST:
                 TokenNumber = 0
@@ -1096,7 +1096,7 @@ def CreateLibraryPcdCode(Info, AutoGenC, AutoGenH, Pcd):
     if PcdItemType in gDynamicExPcd:
         PcdExTokenName = '_PCD_TOKEN_' + TokenSpaceGuidCName + '_' + Pcd.TokenCName
         AutoGenH.Append('\n#define %s  %dU\n' % (PcdExTokenName, TokenNumber))
-        
+
         if Info.IsLibrary:
             PcdList = Info.LibraryPcdList
         else:
@@ -1149,24 +1149,24 @@ def CreateLibraryPcdCode(Info, AutoGenC, AutoGenH, Pcd):
         else:
             AutoGenH.Append('#define %s(Value)  (%s = (Value))\n' % (SetModeName, PcdVariableName))
             AutoGenH.Append('#define %s(Value)  ((%s = (Value)), RETURN_SUCCESS)\n' % (SetModeStatusName, PcdVariableName))
-        
+
         PcdDataSize = GetPcdSize(Pcd)
         AutoGenH.Append('#define %s %s\n' % (PatchPcdSizeTokenName, PcdDataSize))
         AutoGenH.Append('#define %s %s\n' % (GetModeSizeName,PatchPcdSizeVariableName))
         AutoGenH.Append('extern UINTN %s; \n' % PatchPcdSizeVariableName)
-        
+
     if PcdItemType == TAB_PCDS_FIXED_AT_BUILD or PcdItemType == TAB_PCDS_FEATURE_FLAG:
         key = ".".join((Pcd.TokenSpaceGuidCName,Pcd.TokenCName))
-        
+
         if DatumType == 'VOID*' and Array == '[]':
             DatumType = ['UINT8', 'UINT16'][Pcd.DefaultValue[0] == 'L']
         AutoGenH.Append('extern const %s _gPcd_FixedAtBuild_%s%s;\n' %(DatumType, TokenCName, Array))
         AutoGenH.Append('#define %s  %s_gPcd_FixedAtBuild_%s\n' %(GetModeName, Type, TokenCName))
         AutoGenH.Append('//#define %s  ASSERT(FALSE)  // It is not allowed to set value for a FIXED_AT_BUILD PCD\n' % SetModeName)
-        
+
         if PcdItemType == TAB_PCDS_FIXED_AT_BUILD and key in Info.ConstPcd:
             AutoGenH.Append('#define _PCD_VALUE_%s %s\n' %(TokenCName, Pcd.DefaultValue))
-        
+
         if PcdItemType == TAB_PCDS_FIXED_AT_BUILD:
             PcdDataSize = GetPcdSize(Pcd)
             AutoGenH.Append('#define %s %s\n' % (FixPcdSizeTokenName, PcdDataSize))
@@ -1314,7 +1314,7 @@ def CreateModuleEntryPointCode(Info, AutoGenC, AutoGenH):
     }
 
     if Info.ModuleType in ['PEI_CORE', 'DXE_CORE', 'SMM_CORE']:
-        if Info.SourceFileList <> None and Info.SourceFileList <> []:
+        if Info.SourceFileList != None and Info.SourceFileList != []:
           if NumEntryPoints != 1:
               EdkLogger.error(
                   "build",
@@ -1349,7 +1349,7 @@ def CreateModuleEntryPointCode(Info, AutoGenC, AutoGenH):
             AutoGenC.Append(gDxeSmmEntryPointString[0].Replace(Dict))
         else:
             AutoGenC.Append(gDxeSmmEntryPointString[1].Replace(Dict))
-        AutoGenH.Append(gDxeSmmEntryPointPrototype.Replace(Dict))    
+        AutoGenH.Append(gDxeSmmEntryPointPrototype.Replace(Dict))
     elif Info.ModuleType == 'UEFI_APPLICATION':
         if NumEntryPoints < 2:
             AutoGenC.Append(gUefiApplicationEntryPointString[NumEntryPoints].Replace(Dict))
@@ -1465,14 +1465,14 @@ def CreatePcdCode(Info, AutoGenC, AutoGenH):
     for Pcd in Info.ModulePcdList:
         if Pcd.Type in gDynamicExPcd and Pcd.TokenSpaceGuidCName not in TokenSpaceList:
             TokenSpaceList += [Pcd.TokenSpaceGuidCName]
-            
+
     # Add extern declarations to AutoGen.h if one or more Token Space GUIDs were found
-    if TokenSpaceList <> []:            
+    if TokenSpaceList != []:
         AutoGenH.Append("\n// Definition of PCD Token Space GUIDs used in this module\n\n")
         if Info.ModuleType in ["USER_DEFINED", "BASE"]:
             GuidType = "GUID"
         else:
-            GuidType = "EFI_GUID"              
+            GuidType = "EFI_GUID"
         for Item in TokenSpaceList:
             AutoGenH.Append('extern %s %s;\n' % (GuidType, Item))
 
@@ -1581,7 +1581,7 @@ def CreateHeaderCode(Info, AutoGenC, AutoGenH):
            and gModuleTypeHeaderFile[Info.ModuleType][0] != gBasicHeaderFile:
             AutoGenH.Append("#include <%s>\n" % gModuleTypeHeaderFile[Info.ModuleType][0])
         #
-        # if either PcdLib in [LibraryClasses] sections or there exist Pcd section, add PcdLib.h 
+        # if either PcdLib in [LibraryClasses] sections or there exist Pcd section, add PcdLib.h
         # As if modules only uses FixedPcd, then PcdLib is not needed in [LibraryClasses] section.
         #
         if 'PcdLib' in Info.Module.LibraryClasses or Info.Module.Pcds:
@@ -1654,7 +1654,7 @@ def CreateCode(Info, AutoGenC, AutoGenH, StringH, UniGenCFlag, UniGenBinBuffer):
             if Guid in Info.Module.GetGuidsUsedByPcd():
                 continue
             GuidMacros.append('#define %s %s' % (Guid, Info.Module.Guids[Guid]))
-        for Guid, Value in Info.Module.Protocols.items() + Info.Module.Ppis.items():
+        for Guid, Value in list(Info.Module.Protocols.items()) + list(Info.Module.Ppis.items()):
             GuidMacros.append('#define %s %s' % (Guid, Value))
         if GuidMacros:
             StringH.Append('\n#ifdef VFRCOMPILE\n%s\n#endif\n' % '\n'.join(GuidMacros))
@@ -1679,4 +1679,3 @@ def CreateCode(Info, AutoGenC, AutoGenH, StringH, UniGenCFlag, UniGenBinBuffer):
 #
 def Generate(FilePath, Content, IsBinaryFile):
     return SaveFileOnChange(FilePath, Content, IsBinaryFile)
-

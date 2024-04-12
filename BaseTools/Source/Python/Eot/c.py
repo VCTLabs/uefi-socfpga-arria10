@@ -18,12 +18,12 @@
 import sys
 import Common.LongFilePathOs as os
 import re
-import CodeFragmentCollector
-import FileProfile
+from . import CodeFragmentCollector
+from . import FileProfile
 from CommonDataClass import DataClass
 from Common import EdkLogger
-from EotToolError import *
-import EotGlobalData
+from .EotToolError import *
+from . import EotGlobalData
 
 # Global Dicts
 IncludeFileListDict = {}
@@ -384,4 +384,4 @@ if __name__ == '__main__':
     EdkLogger.SetLevel(EdkLogger.QUIET)
     CollectSourceCodeDataIntoDB(sys.argv[1])
 
-    print 'Done!'
+    print('Done!')

@@ -15,19 +15,19 @@
 ##
 # Import Modules
 #
-import Ffs
-import Rule
+from . import Ffs
+from . import Rule
 import Common.LongFilePathOs as os
-import StringIO
+import io
 import subprocess
 
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 from CommonDataClass.FdfClass import FileStatementClassObject
 from Common import EdkLogger
 from Common.BuildToolError import *
 from Common.Misc import GuidStructureByteArrayToGuidString
-from GuidSection import GuidSection
-from FvImageSection import FvImageSection
+from .GuidSection import GuidSection
+from .FvImageSection import FvImageSection
 
 ## generate FFS from FILE
 #
@@ -55,7 +55,7 @@ class FileStatement (FileStatementClassObject) :
     #   @retval string       Generated FFS file name
     #
     def GenFfs(self, Dict = {}, FvChildAddr=[], FvParentAddr=None):
-        
+
         if self.NameGuid != None and self.NameGuid.startswith('PCD('):
             PcdValue = GenFdsGlobalVariable.GetPcdValue(self.NameGuid)
             if len(PcdValue) == 0:
@@ -68,7 +68,7 @@ class FileStatement (FileStatementClassObject) :
                 EdkLogger.error("GenFds", GENFDS_ERROR, 'GUID value for %s in wrong format.' \
                             % (self.NameGuid))
             self.NameGuid = RegistryGuidStr
-        
+
         OutputDir = os.path.join(GenFdsGlobalVariable.FfsDir, self.NameGuid)
         if not os.path.exists(OutputDir):
             os.makedirs(OutputDir)
@@ -76,15 +76,15 @@ class FileStatement (FileStatementClassObject) :
         Dict.update(self.DefineVarDict)
         SectionAlignments = None
         if self.FvName != None :
-            Buffer = StringIO.StringIO('')
-            if self.FvName.upper() not in GenFdsGlobalVariable.FdfParser.Profile.FvDict.keys():
+            Buffer = io.StringIO('')
+            if self.FvName.upper() not in list(GenFdsGlobalVariable.FdfParser.Profile.FvDict.keys()):
                 EdkLogger.error("GenFds", GENFDS_ERROR, "FV (%s) is NOT described in FDF file!" % (self.FvName))
             Fv = GenFdsGlobalVariable.FdfParser.Profile.FvDict.get(self.FvName.upper())
             FileName = Fv.AddToBuffer(Buffer)
             SectionFiles = [FileName]
 
         elif self.FdName != None:
-            if self.FdName.upper() not in GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys():
+            if self.FdName.upper() not in list(GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys()):
                 EdkLogger.error("GenFds", GENFDS_ERROR, "FD (%s) is NOT described in FDF file!" % (self.FdName))
             Fd = GenFdsGlobalVariable.FdfParser.Profile.FdDict.get(self.FdName.upper())
             FileName = Fd.GenFd()
@@ -134,6 +134,3 @@ class FileStatement (FileStatementClassObject) :
                                         )
 
         return FfsFileOutput
-
-
-

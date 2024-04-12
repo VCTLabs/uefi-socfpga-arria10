@@ -3202,7 +3202,7 @@ order (MRO) for bases """
             pass
         class Exception2(Base, Exception):
             pass
-        for ExceptionType in Exception, Exception1, Exception2:
+        for ExceptionType in Exception as Exception1, Exception2:
             e = ExceptionType()
             e.__dict__ = {"a": 1}
             self.assertEqual(e.a, 1)

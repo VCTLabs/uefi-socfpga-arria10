@@ -16,11 +16,11 @@
 #
 import Common.LongFilePathOs as os
 import re
-import EdkLogger
+from . import EdkLogger
 
-from Dictionary import *
-from BuildToolError import *
-from TargetTxtClassObject import *
+from .Dictionary import *
+from .BuildToolError import *
+from .TargetTxtClassObject import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
 ##
@@ -184,7 +184,7 @@ class ToolDefClassObject(object):
                 Value = Value.replace(Ref, "")
             else:
                 Value = Value.replace(Ref, self.MacroDictionary[Ref])
- 
+
 
         MacroReference = gMacroRefPattern.findall(Value)
         for Ref in MacroReference:

@@ -111,7 +111,7 @@ class Configuration(object):
         self.HeaderCheckCFileCommentReferenceFormat = 1
         # Check whether C File header Comment have the License immediately after the ""Copyright"" line
         self.HeaderCheckCFileCommentLicenseFormat = 1
-  
+
         ## C Function Layout Checking
         self.CFunctionLayoutCheckAll = 0
 
@@ -248,7 +248,7 @@ class Configuration(object):
         self.MetaDataFileCheckModuleFilePpiFormat = 1
         # Check Pcd Format in INF files
         self.MetaDataFileCheckModuleFilePcdFormat = 1
-        
+
         # Check UNI file
         self.UniCheckAll = 0
         # Check INF or DEC file whether defined the localized information in the associated UNI file.
@@ -265,16 +265,16 @@ class Configuration(object):
 
         # The directory listed here will not be parsed, split with ','
         self.SkipDirList = []
-        
+
         # The file listed here will not be parsed, split with ','
         self.SkipFileList = []
 
         # A list for binary file ext name
         self.BinaryExtList = []
-        
+
         # A list for only scanned folders
         self.ScanOnlyDirList = []
-        
+
         # A list for Copyright format
         self.Copyright = []
 
@@ -310,6 +310,6 @@ class Configuration(object):
                 self.__dict__[List[0]] = List[1]
 
     def ShowMe(self):
-        print self.Filename
-        for Key in self.__dict__.keys():
-            print Key, '=', self.__dict__[Key]
+        print(self.Filename)
+        for Key in list(self.__dict__.keys()):
+            print(Key, '=', self.__dict__[Key])

@@ -15,9 +15,9 @@
 ##
 # Import Modules
 #
-import Ffs
-from GenFdsGlobalVariable import GenFdsGlobalVariable
-import StringIO
+from . import Ffs
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
+import io
 from struct import pack
 import os
 from Common.Misc import SaveFileOnChange
@@ -31,13 +31,13 @@ class CapsuleData:
     #   @param  self        The object pointer
     def __init__(self):
         pass
-    
+
     ## generate capsule data
     #
     #   @param  self        The object pointer
     def GenCapsuleSubItem(self):
         pass
-        
+
 ## FFS class for capsule data
 #
 #
@@ -79,9 +79,9 @@ class CapsuleFv (CapsuleData):
     #
     def GenCapsuleSubItem(self):
         if self.FvName.find('.fv') == -1:
-            if self.FvName.upper() in GenFdsGlobalVariable.FdfParser.Profile.FvDict.keys():
+            if self.FvName.upper() in list(GenFdsGlobalVariable.FdfParser.Profile.FvDict.keys()):
                 FvObj = GenFdsGlobalVariable.FdfParser.Profile.FvDict.get(self.FvName.upper())
-                FdBuffer = StringIO.StringIO('')
+                FdBuffer = io.StringIO('')
                 FvObj.CapsuleName = self.CapsuleName
                 FvFile = FvObj.AddToBuffer(FdBuffer)
                 FvObj.CapsuleName = None
@@ -111,14 +111,14 @@ class CapsuleFd (CapsuleData):
     #
     def GenCapsuleSubItem(self):
         if self.FdName.find('.fd') == -1:
-            if self.FdName.upper() in GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys():
+            if self.FdName.upper() in list(GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys()):
                 FdObj = GenFdsGlobalVariable.FdfParser.Profile.FdDict.get(self.FdName.upper())
                 FdFile = FdObj.GenFd()
                 return FdFile
         else:
             FdFile = GenFdsGlobalVariable.ReplaceWorkspaceMacro(self.FdName)
             return FdFile
-        
+
 ## AnyFile class for capsule data
 #
 #
@@ -138,7 +138,7 @@ class CapsuleAnyFile (CapsuleData):
     #
     def GenCapsuleSubItem(self):
         return self.FileName
-    
+
 ## Afile class for capsule data
 #
 #
@@ -195,11 +195,11 @@ class CapsulePayload(CapsuleData):
         Guid = self.ImageTypeId.split('-')
         Buffer = pack('=ILHHBBBBBBBBBBBBIIQ',
                        int(self.Version,16),
-                       int(Guid[0], 16), 
-                       int(Guid[1], 16), 
-                       int(Guid[2], 16), 
-                       int(Guid[3][-4:-2], 16), 
-                       int(Guid[3][-2:], 16),  
+                       int(Guid[0], 16),
+                       int(Guid[1], 16),
+                       int(Guid[2], 16),
+                       int(Guid[3][-4:-2], 16),
+                       int(Guid[3][-2:], 16),
                        int(Guid[4][-12:-10], 16),
                        int(Guid[4][-10:-8], 16),
                        int(Guid[4][-8:-6], 16),

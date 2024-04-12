@@ -32,7 +32,7 @@ class TargetTool():
         self.Arg       = args[0]
         self.FileName  = os.path.normpath(os.path.join(self.WorkSpace, 'Conf', 'target.txt'))
         if os.path.isfile(self.FileName) == False:
-            print "%s does not exist." % self.FileName
+            print("%s does not exist." % self.FileName)
             sys.exit(1)
         self.TargetTxtDictionary = {
             TAB_TAT_DEFINES_ACTIVE_PLATFORM                            : None,
@@ -65,7 +65,7 @@ class TargetTool():
                 LineList = Line.split(KeySplitCharacter,1)
                 if len(LineList) >= 2:
                     Key = LineList[0].strip()
-                    if Key.startswith(CommentCharacter) == False and Key in self.TargetTxtDictionary.keys():
+                    if Key.startswith(CommentCharacter) == False and Key in list(self.TargetTxtDictionary.keys()):
                         if Key == TAB_TAT_DEFINES_ACTIVE_PLATFORM or Key == TAB_TAT_DEFINES_TOOL_CHAIN_CONF \
                           or Key == TAB_TAT_DEFINES_MAX_CONCURRENT_THREAD_NUMBER \
                           or Key == TAB_TAT_DEFINES_ACTIVE_MODULE:
@@ -80,19 +80,19 @@ class TargetTool():
             traceback.print_exception(last_type, last_value, last_tb)
 
     def Print(self):
-        KeyList = self.TargetTxtDictionary.keys()
+        KeyList = list(self.TargetTxtDictionary.keys())
         errMsg  = ''
         for Key in KeyList:
             if type(self.TargetTxtDictionary[Key]) == type([]):
-                print "%-30s = %s" % (Key, ''.join(elem + ' ' for elem in self.TargetTxtDictionary[Key]))
+                print("%-30s = %s" % (Key, ''.join(elem + ' ' for elem in self.TargetTxtDictionary[Key])))
             elif self.TargetTxtDictionary[Key] == None:
-                errMsg += "  Missing %s configuration information, please use TargetTool to set value!" % Key + os.linesep 
+                errMsg += "  Missing %s configuration information, please use TargetTool to set value!" % Key + os.linesep
             else:
-                print "%-30s = %s" % (Key, self.TargetTxtDictionary[Key])
-        
+                print("%-30s = %s" % (Key, self.TargetTxtDictionary[Key]))
+
         if errMsg != '':
-            print os.linesep + 'Warning:' + os.linesep + errMsg
-            
+            print(os.linesep + 'Warning:' + os.linesep + errMsg)
+
     def RWFile(self, CommentCharacter, KeySplitCharacter, Num):
         try:
             fr = open(self.FileName, 'r')
@@ -106,12 +106,12 @@ class TargetTool():
                     LineList = Line.split(KeySplitCharacter,1)
                     if len(LineList) >= 2:
                         Key = LineList[0].strip()
-                        if Key.startswith(CommentCharacter) == False and Key in self.TargetTxtDictionary.keys():
+                        if Key.startswith(CommentCharacter) == False and Key in list(self.TargetTxtDictionary.keys()):
                             if Key not in existKeys:
                                 existKeys.append(Key)
                             else:
-                                print "Warning: Found duplicate key item in original configuration files!"
-                                
+                                print("Warning: Found duplicate key item in original configuration files!")
+
                             if Num == 0:
                                 Line = "%-30s = \n" % Key
                             else:
@@ -119,19 +119,19 @@ class TargetTool():
                                 if ret != None:
                                     Line = ret
                             fw.write(Line)
-            for key in self.TargetTxtDictionary.keys():
+            for key in list(self.TargetTxtDictionary.keys()):
                 if key not in existKeys:
-                    print "Warning: %s does not exist in original configuration file" % key
+                    print("Warning: %s does not exist in original configuration file" % key)
                     Line = GetConfigureKeyValue(self, key)
                     if Line == None:
                         Line = "%-30s = " % key
                     fw.write(Line)
-                
+
             fr.close()
             fw.close()
             os.remove(self.FileName)
             os.rename(os.path.normpath(os.path.join(self.WorkSpace, 'Conf\\targetnew.txt')), self.FileName)
-            
+
         except:
             last_type, last_value, last_tb = sys.exc_info()
             traceback.print_exception(last_type, last_value, last_tb)
@@ -143,20 +143,20 @@ def GetConfigureKeyValue(self, Key):
         if os.path.exists(dscFullPath):
             Line = "%-30s = %s\n" % (Key, self.Opt.DSCFILE)
         else:
-            EdkLogger.error("TagetTool", BuildToolError.FILE_NOT_FOUND, 
+            EdkLogger.error("TagetTool", BuildToolError.FILE_NOT_FOUND,
                             "DSC file %s does not exist!" % self.Opt.DSCFILE, RaiseError=False)
     elif Key == TAB_TAT_DEFINES_TOOL_CHAIN_CONF and self.Opt.TOOL_DEFINITION_FILE != None:
         tooldefFullPath = os.path.join(self.WorkSpace, self.Opt.TOOL_DEFINITION_FILE)
         if os.path.exists(tooldefFullPath):
             Line = "%-30s = %s\n" % (Key, self.Opt.TOOL_DEFINITION_FILE)
         else:
-            EdkLogger.error("TagetTool", BuildToolError.FILE_NOT_FOUND, 
+            EdkLogger.error("TagetTool", BuildToolError.FILE_NOT_FOUND,
                             "Tooldef file %s does not exist!" % self.Opt.TOOL_DEFINITION_FILE, RaiseError=False)
 
     elif self.Opt.NUM >= 2:
         Line = "%-30s = %s\n" % (Key, 'Enable')
     elif self.Opt.NUM <= 1:
-        Line = "%-30s = %s\n" % (Key, 'Disable')        
+        Line = "%-30s = %s\n" % (Key, 'Disable')
     elif Key == TAB_TAT_DEFINES_MAX_CONCURRENT_THREAD_NUMBER and self.Opt.NUM != None:
         Line = "%-30s = %s\n" % (Key, str(self.Opt.NUM))
     elif Key == TAB_TAT_DEFINES_TARGET and self.Opt.TARGET != None:
@@ -170,7 +170,7 @@ def GetConfigureKeyValue(self, Key):
         if os.path.exists(buildruleFullPath):
             Line = "%-30s = %s\n" % (Key, self.Opt.BUILD_RULE_FILE)
         else:
-            EdkLogger.error("TagetTool", BuildToolError.FILE_NOT_FOUND, 
+            EdkLogger.error("TagetTool", BuildToolError.FILE_NOT_FOUND,
                             "Build rule file %s does not exist!" % self.Opt.BUILD_RULE_FILE, RaiseError=False)
     return Line
 
@@ -200,7 +200,7 @@ def RangeCheckCallback(option, opt_str, value, parser):
             setattr(parser.values, option.dest, value)
     else:
         parser.error("Option %s only allows one instance in command line!" % option)
-        
+
 def MyOptionParser():
     parser = OptionParser(version=__version__,prog="TargetTool.exe",usage=__usage__,description=__copyright__)
     parser.add_option("-a", "--arch", action="append", type="choice", choices=['IA32','X64','IPF','EBC', 'ARM', 'AARCH64','0'], dest="TARGET_ARCH",
@@ -224,25 +224,25 @@ if __name__ == '__main__':
     EdkLogger.Initialize()
     EdkLogger.SetLevel(EdkLogger.QUIET)
     if os.getenv('WORKSPACE') == None:
-        print "ERROR: WORKSPACE should be specified or edksetup script should be executed before run TargetTool"
+        print("ERROR: WORKSPACE should be specified or edksetup script should be executed before run TargetTool")
         sys.exit(1)
-        
+
     (opt, args) = MyOptionParser()
     if len(args) != 1 or (args[0].lower() != 'print' and args[0].lower() != 'clean' and args[0].lower() != 'set'):
-        print "The number of args isn't 1 or the value of args is invalid."
+        print("The number of args isn't 1 or the value of args is invalid.")
         sys.exit(1)
     if opt.NUM != None and opt.NUM < 1:
-        print "The MAX_CONCURRENT_THREAD_NUMBER must be larger than 0."
+        print("The MAX_CONCURRENT_THREAD_NUMBER must be larger than 0.")
         sys.exit(1)
     if opt.TARGET != None and len(opt.TARGET) > 1:
         for elem in opt.TARGET:
             if elem == '0':
-                print "0 will clear the TARGET setting in target.txt and can't combine with other value."
+                print("0 will clear the TARGET setting in target.txt and can't combine with other value.")
                 sys.exit(1)
     if opt.TARGET_ARCH != None and len(opt.TARGET_ARCH) > 1:
         for elem in opt.TARGET_ARCH:
             if elem == '0':
-                print "0 will clear the TARGET_ARCH setting in target.txt and can't combine with other value."
+                print("0 will clear the TARGET_ARCH setting in target.txt and can't combine with other value.")
                 sys.exit(1)
 
     try:
@@ -254,7 +254,6 @@ if __name__ == '__main__':
             FileHandle.RWFile('#', '=', 0)
         else:
             FileHandle.RWFile('#', '=', 1)
-    except Exception, e:
+    except Exception as e:
         last_type, last_value, last_tb = sys.exc_info()
         traceback.print_exception(last_type, last_value, last_tb)
-

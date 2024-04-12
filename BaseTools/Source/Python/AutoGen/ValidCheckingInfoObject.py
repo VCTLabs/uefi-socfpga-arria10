@@ -17,13 +17,13 @@
 import os
 from Common.RangeExpression import RangeExpression
 from Common.Misc import *
-from StringIO import StringIO
+from io import StringIO
 from struct import pack
 
 class VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER(object):
     def __init__(self):
         self.var_check_info = []
-        
+
     def push_back(self, var_check_tab):
         for tab in self.var_check_info:
             if tab.equal(var_check_tab):
@@ -31,15 +31,15 @@ class VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER(object):
                 break
         else:
             self.var_check_info.append(var_check_tab)
-    
+
     def dump(self, dest, Phase):
-        
+
         FormatMap = {}
         FormatMap[1] = "=B"
         FormatMap[2] = "=H"
         FormatMap[4] = "=L"
         FormatMap[8] = "=Q"
-        
+
         if not os.path.isabs(dest):
             return
         if not os.path.exists(dest):
@@ -62,7 +62,7 @@ class VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER(object):
                 itemIndex += 1
                 realLength += 5
                 for v_data in item.data:
-                    if type(v_data) in (int, long):
+                    if type(v_data) in (int, int):
                         realLength += item.StorageWidth
                     else:
                         realLength += item.StorageWidth
@@ -154,7 +154,7 @@ class VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER(object):
                 Buffer += b
                 realLength += 1
                 for v_data in item.data:
-                    if type(v_data) in (int, long):
+                    if type(v_data) in (int, int):
                         b = pack(FormatMap[item.StorageWidth], v_data)
                         Buffer += b
                         realLength += item.StorageWidth
@@ -178,7 +178,7 @@ class VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER(object):
                             b = pack("=B", var_check_tab.pad)
                             Buffer += b
                             realLength += 1
-        
+
         DbFile = StringIO()
         if Phase == 'DXE' and os.path.exists(BinFilePath):
             BinFile = open(BinFilePath, "rb")
@@ -192,7 +192,7 @@ class VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER(object):
             Buffer = BinBuffer + Buffer
         DbFile.write(Buffer)
         SaveFileOnChange(BinFilePath, DbFile.getvalue(), True)
-    
+
 
 class VAR_CHECK_PCD_VARIABLE_TAB(object):
     pad = 0xDA
@@ -210,26 +210,26 @@ class VAR_CHECK_PCD_VARIABLE_TAB(object):
     def UpdateSize(self):
         self.HeaderLength = 32 + len(self.Name.split(","))
         self.Length = 32 + len(self.Name.split(",")) + self.GetValidTabLen()
-    
+
     def GetValidTabLen(self):
         validtablen = 0
         for item in self.validtab:
-            validtablen += item.Length  
-        return validtablen 
-    
+            validtablen += item.Length
+        return validtablen
+
     def SetAttributes(self, attributes):
         self.Attributes = attributes
-            
+
     def push_back(self, valid_obj):
         if valid_obj is not None:
             self.validtab.append(valid_obj)
-        
+
     def equal(self, varchecktab):
         if self.Guid == varchecktab.Guid and self.Name == varchecktab.Name:
             return True
         else:
             return False
-        
+
     def merge(self, varchecktab):
         for validobj in varchecktab.validtab:
             if validobj in self.validtab:
@@ -261,13 +261,13 @@ class VAR_CHECK_PCD_VALID_OBJ(object):
         else:
             self.StorageWidth = 0
             self.ValidData = False
-            
-    def __eq__(self, validObj):       
+
+    def __eq__(self, validObj):
         if self.VarOffset == validObj.VarOffset:
             return True
         else:
             return False
-         
+
 class VAR_CHECK_PCD_VALID_LIST(VAR_CHECK_PCD_VALID_OBJ):
     def __init__(self, VarOffset, validlist, PcdDataType):
         super(VAR_CHECK_PCD_VALID_LIST, self).__init__(VarOffset, validlist, PcdDataType)
@@ -279,7 +279,7 @@ class VAR_CHECK_PCD_VALID_LIST(VAR_CHECK_PCD_VALID_OBJ):
         data_list = []
         for item in self.rawdata:
             valid_num_list.extend(item.split(','))
-        
+
         for valid_num in valid_num_list:
             valid_num = valid_num.strip()
 
@@ -288,13 +288,13 @@ class VAR_CHECK_PCD_VALID_LIST(VAR_CHECK_PCD_VALID_OBJ):
             else:
                 data_list.append(int(valid_num))
 
-                
+
         self.data = set(data_list)
-        
+
     def update_size(self):
         self.Length = 5 + len(self.data) * self.StorageWidth
-        
-           
+
+
 class VAR_CHECK_PCD_VALID_RANGE(VAR_CHECK_PCD_VALID_OBJ):
     def __init__(self, VarOffset, validrange, PcdDataType):
         super(VAR_CHECK_PCD_VALID_RANGE, self).__init__(VarOffset, validrange, PcdDataType)
@@ -315,10 +315,10 @@ class VAR_CHECK_PCD_VALID_RANGE(VAR_CHECK_PCD_VALID_OBJ):
             for obj in rangelist.pop():
                 data_list.append((obj.start, obj.end))
         self.data = set(data_list)
-    
+
     def update_size(self):
         self.Length = 5 + len(self.data) * 2 * self.StorageWidth
-        
+
 
 class VAR_VALID_OBJECT_FACTORY(object):
     def __init__(self):
@@ -343,8 +343,7 @@ if __name__ == "__main__":
                 return False
     test1 = TestObj(1)
     test2 = TestObj(2)
-    
+
     testarr = [test1, test2]
-    print TestObj(2) in testarr
-    print TestObj(2) == test2
-    
+    print(TestObj(2) in testarr)
+    print(TestObj(2) == test2)

@@ -10,14 +10,15 @@
 # THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 # WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #
-from StringIO import StringIO
+from io import StringIO
 from Common.Misc import *
 from Common.String import StringToArray
 from struct import pack
-from ValidCheckingInfoObject import VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER
-from ValidCheckingInfoObject import VAR_CHECK_PCD_VARIABLE_TAB
-from ValidCheckingInfoObject import VAR_VALID_OBJECT_FACTORY
+from .ValidCheckingInfoObject import VAR_CHECK_PCD_VARIABLE_TAB_CONTAINER
+from .ValidCheckingInfoObject import VAR_CHECK_PCD_VARIABLE_TAB
+from .ValidCheckingInfoObject import VAR_VALID_OBJECT_FACTORY
 from Common.VariableAttributes import VariableAttributes
+from functools import reduce
 
 DATABASE_VERSION = 5
 
@@ -180,10 +181,10 @@ typedef struct {
   //UINT32                UninitDataBaseSize;// Total size for PCD those default value with 0.
   //TABLE_OFFSET          LocalTokenNumberTableOffset;
   //TABLE_OFFSET          ExMapTableOffset;
-  //TABLE_OFFSET          GuidTableOffset;     
+  //TABLE_OFFSET          GuidTableOffset;
   //TABLE_OFFSET          StringTableOffset;
   //TABLE_OFFSET          SizeTableOffset;
-  //TABLE_OFFSET          SkuIdTableOffset; 
+  //TABLE_OFFSET          SkuIdTableOffset;
   //UINT16                LocalTokenCount;  // LOCAL_TOKEN_NUMBER for all
   //UINT16                ExTokenCount;     // EX_TOKEN_NUMBER for DynamicEx
   //UINT16                GuidTableCount;   // The Number of Guid in GuidTable
@@ -244,11 +245,11 @@ ${PHASE}_PCD_DATABASE_INIT g${PHASE}PcdDbInit = {
 def PackGuid(GuidStructureValue):
     GuidString = GuidStructureStringToGuidString(GuidStructureValue)
     Guid = GuidString.split('-')
-    Buffer = pack('=LHHBBBBBBBB', 
-                int(Guid[0], 16), 
-                int(Guid[1], 16), 
-                int(Guid[2], 16), 
-                int(Guid[3][-4:-2], 16), 
+    Buffer = pack('=LHHBBBBBBBB',
+                int(Guid[0], 16),
+                int(Guid[1], 16),
+                int(Guid[2], 16),
+                int(Guid[3][-4:-2], 16),
                 int(Guid[3][-2:], 16),
                 int(Guid[4][-12:-10], 16),
                 int(Guid[4][-10:-8], 16),
@@ -272,11 +273,11 @@ def toHex(s):
         return 'empty'
 ## DbItemList
 #
-#  The class holds the Pcd database items. ItemSize if not zero should match the item datum type in the C structure. 
+#  The class holds the Pcd database items. ItemSize if not zero should match the item datum type in the C structure.
 #  When the structure is changed, remember to check the ItemSize and the related  PackStr in PackData()
-#  RawDataList is the RawData that may need some kind of calculation or transformation, 
+#  RawDataList is the RawData that may need some kind of calculation or transformation,
 #  the DataList corresponds to the data that need to be written to database. If DataList is not present, then RawDataList
-#  will be written to the database. 
+#  will be written to the database.
 #
 class DbItemList:
     def __init__(self, ItemSize, DataList=None, RawDataList=None):
@@ -296,7 +297,7 @@ class DbItemList:
             # Variable length, need to calculate one by one
             #
             assert(Index < len(self.RawDataList))
-            for ItemIndex in xrange(Index):
+            for ItemIndex in range(Index):
                 Offset += len(self.RawDataList[ItemIndex])
         else:
             for Datas in self.RawDataList:
@@ -352,7 +353,7 @@ class DbItemList:
 
 ## DbExMapTblItemList
 #
-#  The class holds the ExMap table 
+#  The class holds the ExMap table
 #
 class DbExMapTblItemList (DbItemList):
     def __init__(self, ItemSize, DataList=None, RawDataList=None):
@@ -365,15 +366,15 @@ class DbExMapTblItemList (DbItemList):
         Buffer = ''
         PackStr = "=LHH"
         for Datas in self.RawDataList:
-            Buffer += pack(PackStr, 
+            Buffer += pack(PackStr,
                            GetIntegerValue(Datas[0]),
                            GetIntegerValue(Datas[1]),
-                           GetIntegerValue(Datas[2]))      
+                           GetIntegerValue(Datas[2]))
         return Buffer
 
 ## DbComItemList
 #
-# The DbComItemList is a special kind of DbItemList in case that the size of the List can not be computed by the 
+# The DbComItemList is a special kind of DbItemList in case that the size of the List can not be computed by the
 # ItemSize multiply the ItemCount.
 #
 class DbComItemList (DbItemList):
@@ -393,8 +394,8 @@ class DbComItemList (DbItemList):
             assert(False)
         else:
             assert(Index < len(self.RawDataList))
-            for ItemIndex in xrange(Index):
-                Offset += len(self.RawDataList[ItemIndex]) * self.ItemSize         
+            for ItemIndex in range(Index):
+                Offset += len(self.RawDataList[ItemIndex]) * self.ItemSize
 
         return Offset
 
@@ -433,12 +434,12 @@ class DbComItemList (DbItemList):
                         Buffer += pack(PackStr, GetIntegerValue(SingleData))
                 else:
                     Buffer += pack(PackStr, GetIntegerValue(Data))
-        
+
         return Buffer
 
 ## DbVariableTableItemList
 #
-#  The class holds the Variable header value table 
+#  The class holds the Variable header value table
 #
 class DbVariableTableItemList (DbComItemList):
     def __init__(self, ItemSize, DataList=None, RawDataList=None):
@@ -452,7 +453,7 @@ class DbVariableTableItemList (DbComItemList):
         Buffer = ''
         for DataList in self.RawDataList:
             for Data in DataList:
-                Buffer += pack(PackStr, 
+                Buffer += pack(PackStr,
                                GetIntegerValue(Data[0]),
                                GetIntegerValue(Data[1]),
                                GetIntegerValue(Data[2]),
@@ -467,9 +468,9 @@ class DbStringHeadTableItemList(DbItemList):
         if DataList is None:
             DataList = []
         if RawDataList is None:
-            RawDataList = []        
+            RawDataList = []
         DbItemList.__init__(self, ItemSize, DataList, RawDataList)
-        
+
     def GetInterOffset(self, Index):
         Offset = 0
         if self.ItemSize == 0:
@@ -477,7 +478,7 @@ class DbStringHeadTableItemList(DbItemList):
             # Variable length, need to calculate one by one
             #
             assert(Index < len(self.RawDataList))
-            for ItemIndex in xrange(Index):
+            for ItemIndex in range(Index):
                 Offset += len(self.RawDataList[ItemIndex])
         else:
             for innerIndex in range(Index):
@@ -502,38 +503,38 @@ class DbStringHeadTableItemList(DbItemList):
                     self.ListSize += len(Datas) * self.ItemSize
                 else:
                     self.ListSize += self.ItemSize
-        return self.ListSize 
+        return self.ListSize
 
 ## DbSkuHeadTableItemList
 #
-#  The class holds the Sku header value table 
+#  The class holds the Sku header value table
 #
 class DbSkuHeadTableItemList (DbItemList):
     def __init__(self, ItemSize, DataList=None, RawDataList=None):
         if DataList is None:
             DataList = []
         if RawDataList is None:
-            RawDataList = []        
+            RawDataList = []
         DbItemList.__init__(self, ItemSize, DataList, RawDataList)
     def PackData(self):
         PackStr = "=LL"
         Buffer = ''
         for Data in self.RawDataList:
-            Buffer += pack(PackStr, 
+            Buffer += pack(PackStr,
                            GetIntegerValue(Data[0]),
                            GetIntegerValue(Data[1]))
         return Buffer
 
 ## DbSizeTableItemList
 #
-#  The class holds the size table 
+#  The class holds the size table
 #
 class DbSizeTableItemList (DbItemList):
     def __init__(self, ItemSize, DataList=None, RawDataList=None):
         if DataList is None:
             DataList = []
         if RawDataList is None:
-            RawDataList = []        
+            RawDataList = []
         DbItemList.__init__(self, ItemSize, DataList, RawDataList)
     def GetListSize(self):
         length = 0
@@ -544,16 +545,16 @@ class DbSizeTableItemList (DbItemList):
         PackStr = "=H"
         Buffer = ''
         for Data in self.RawDataList:
-            Buffer += pack(PackStr, 
+            Buffer += pack(PackStr,
                            GetIntegerValue(Data[0]))
             for subData in Data[1]:
-                Buffer += pack(PackStr, 
+                Buffer += pack(PackStr,
                            GetIntegerValue(subData))
         return Buffer
 
 ## DbStringItemList
 #
-#  The class holds the string table 
+#  The class holds the string table
 #
 class DbStringItemList (DbComItemList):
     def __init__(self, ItemSize, DataList=None, RawDataList=None, LenList=None):
@@ -563,18 +564,18 @@ class DbStringItemList (DbComItemList):
             RawDataList = []
         if LenList is None:
             LenList = []
-             
+
         assert(len(RawDataList) == len(LenList))
         DataList = []
         # adjust DataList according to the LenList
-        for Index in xrange(len(RawDataList)):
+        for Index in range(len(RawDataList)):
             Len = LenList[Index]
             RawDatas = RawDataList[Index]
             assert(Len >= len(RawDatas))
             ActualDatas = []
-            for i in xrange(len(RawDatas)):
+            for i in range(len(RawDatas)):
                 ActualDatas.append(RawDatas[i])
-            for i in xrange(len(RawDatas), Len):
+            for i in range(len(RawDatas), Len):
                 ActualDatas.append(0)
             DataList.append(ActualDatas)
         self.LenList = LenList
@@ -583,7 +584,7 @@ class DbStringItemList (DbComItemList):
         Offset = 0
 
         assert(Index < len(self.LenList))
-        for ItemIndex in xrange(Index):
+        for ItemIndex in range(Index):
             Offset += self.LenList[ItemIndex]
 
         return Offset
@@ -622,18 +623,18 @@ def GetMatchedIndex(Key1, List1, Key2, List2):
             return Index
         else:
             StartPos = Index + 1
-    
+
     return -1
 
 
 ##  Get the integer value from string like "14U" or integer like 2
 #
-#   @param      Input   The object that may be either a integer value or a string 
-#  
+#   @param      Input   The object that may be either a integer value or a string
+#
 #   @retval     Value    The integer value that the input represents
 #
 def GetIntegerValue(Input):
-    if type(Input) in (int, long):
+    if type(Input) in (int, int):
         return Input
     String = Input
     if String.endswith("U"):
@@ -642,7 +643,7 @@ def GetIntegerValue(Input):
         String = String[:-3]
     if String.endswith("LL"):
         String = String[:-2]
-    
+
     if String.startswith("0x") or String.startswith("0X"):
         return int(String, 16)
     elif String == '':
@@ -655,7 +656,7 @@ def GetIntegerValue(Input):
 # to List like [0x36, 0x00, 0x34, 0x00, 0x21, 0x00, 0x36, 0x00, 0x34, 0x00, 0x00, 0x00]
 #
 #   @param      StringArray A string array like {0x36, 0x00, 0x34, 0x00, 0x21, 0x00, 0x36, 0x00, 0x34, 0x00, 0x00, 0x00}
-#  
+#
 #   @retval                 A list object of integer items
 #
 def StringArrayToList(StringArray):
@@ -667,7 +668,7 @@ def StringArrayToList(StringArray):
 ## Convert TokenType String like  "PCD_DATUM_TYPE_UINT32 | PCD_TYPE_HII" to TokenType value
 #
 #   @param      TokenType  A TokenType string like "PCD_DATUM_TYPE_UINT32 | PCD_TYPE_HII"
-#  
+#
 #   @retval                A integer representation of the TokenType
 #
 def GetTokenTypeValue(TokenType):
@@ -694,7 +695,7 @@ def GetTokenTypeValue(TokenType):
 ## construct the external Pcd database using data from Dict
 #
 #   @param      Dict  A dictionary contains Pcd related tables
-#  
+#
 #   @retval     Buffer A byte stream of the Pcd database
 #
 def BuildExDataBase(Dict):
@@ -709,7 +710,7 @@ def BuildExDataBase(Dict):
     DbVardefValueUint32 = DbItemList(4, RawDataList = VardefValueUint32)
     VpdHeadValue = Dict['VPD_DB_VALUE']
     DbVpdHeadValue = DbComItemList(4, RawDataList = VpdHeadValue)
-    ExMapTable = zip(Dict['EXMAPPING_TABLE_EXTOKEN'], Dict['EXMAPPING_TABLE_LOCAL_TOKEN'], Dict['EXMAPPING_TABLE_GUID_INDEX'])
+    ExMapTable = list(zip(Dict['EXMAPPING_TABLE_EXTOKEN'], Dict['EXMAPPING_TABLE_LOCAL_TOKEN'], Dict['EXMAPPING_TABLE_GUID_INDEX']))
     DbExMapTable = DbExMapTblItemList(8, RawDataList = ExMapTable)
     LocalTokenNumberTable = Dict['LOCAL_TOKEN_NUMBER_DB_VALUE']
     DbLocalTokenNumberTable = DbItemList(4, RawDataList = LocalTokenNumberTable)
@@ -721,31 +722,31 @@ def BuildExDataBase(Dict):
     VariableTable = Dict['VARIABLE_DB_VALUE']
     DbVariableTable = DbVariableTableItemList(20, RawDataList = VariableTable)
     NumberOfSkuEnabledPcd = GetIntegerValue(Dict['SKU_HEAD_SIZE'])
-    Dict['SKUHEAD_TABLE_VALUE'] = [(0,0) for i in xrange(NumberOfSkuEnabledPcd)]
+    Dict['SKUHEAD_TABLE_VALUE'] = [(0,0) for i in range(NumberOfSkuEnabledPcd)]
     SkuTable = Dict['SKUHEAD_TABLE_VALUE']  # Generated later
     DbSkuTable = DbSkuHeadTableItemList(8, RawDataList = SkuTable)
     Dict['STRING_TABLE_DB_VALUE'] = [StringArrayToList(x) for x in Dict['STRING_TABLE_VALUE']]
-    
+
     StringTableValue = Dict['STRING_TABLE_DB_VALUE']
     # when calcute the offset, should use StringTableLen instead of StringTableValue, as string maxium len may be different with actual len
     StringTableLen = Dict['STRING_TABLE_LENGTH']
     DbStringTableLen = DbStringItemList(0, RawDataList = StringTableValue, LenList = StringTableLen)
 
-    
+
     PcdTokenTable = Dict['PCD_TOKENSPACE']
     PcdTokenLen = Dict['PCD_TOKENSPACE_LENGTH']
     PcdTokenTableValue = [StringArrayToList(x) for x in Dict['PCD_TOKENSPACE']]
     DbPcdTokenTable = DbStringItemList(0, RawDataList = PcdTokenTableValue, LenList = PcdTokenLen)
-    
+
     PcdCNameTable = Dict['PCD_CNAME']
     PcdCNameLen = Dict['PCD_CNAME_LENGTH']
     PcdCNameTableValue = [StringArrayToList(x) for x in Dict['PCD_CNAME']]
     DbPcdCNameTable = DbStringItemList(0, RawDataList = PcdCNameTableValue, LenList = PcdCNameLen)
-    
+
     PcdNameOffsetTable = Dict['PCD_NAME_OFFSET']
     DbPcdNameOffsetTable = DbItemList(4,RawDataList = PcdNameOffsetTable)
-    
-    SizeTableValue = zip(Dict['SIZE_TABLE_MAXIMUM_LENGTH'], Dict['SIZE_TABLE_CURRENT_LENGTH'])
+
+    SizeTableValue = list(zip(Dict['SIZE_TABLE_MAXIMUM_LENGTH'], Dict['SIZE_TABLE_CURRENT_LENGTH']))
     DbSizeTableValue = DbSizeTableItemList(2, RawDataList = SizeTableValue)
     InitValueUint16 = Dict['INIT_DB_VALUE_UINT16']
     DbInitValueUint16 = DbComItemList(2, RawDataList = InitValueUint16)
@@ -763,7 +764,7 @@ def BuildExDataBase(Dict):
     DbSkuidValue = DbItemList(1, RawDataList = SkuidValue)
     SkuIndexValue = Dict['SKU_INDEX_VALUE']
     DbSkuIndexValue = DbItemList(0,RawDataList = SkuIndexValue)
-    
+
     # Unit Db Items
     UnInitValueUint64 = Dict['UNINIT_GUID_DECL_UINT64']
     DbUnInitValueUint64 = DbItemList(8, RawDataList = UnInitValueUint64)
@@ -776,62 +777,62 @@ def BuildExDataBase(Dict):
     UnInitValueBoolean = Dict['UNINIT_GUID_DECL_BOOLEAN']
     DbUnInitValueBoolean = DbItemList(1, RawDataList = UnInitValueBoolean)
     PcdTokenNumberMap = Dict['PCD_ORDER_TOKEN_NUMBER_MAP']
- 
-    DbNameTotle = ["InitValueUint64", "VardefValueUint64", "InitValueUint32", "VardefValueUint32", "VpdHeadValue", "ExMapTable", 
-               "LocalTokenNumberTable", "GuidTable", "StringHeadValue",  "PcdNameOffsetTable","VariableTable","SkuTable", "StringTableLen", "PcdTokenTable", "PcdCNameTable", 
+
+    DbNameTotle = ["InitValueUint64", "VardefValueUint64", "InitValueUint32", "VardefValueUint32", "VpdHeadValue", "ExMapTable",
+               "LocalTokenNumberTable", "GuidTable", "StringHeadValue",  "PcdNameOffsetTable","VariableTable","SkuTable", "StringTableLen", "PcdTokenTable", "PcdCNameTable",
                "SizeTableValue", "InitValueUint16", "VardefValueUint16", "InitValueUint8", "VardefValueUint8", "InitValueBoolean",
                "VardefValueBoolean", "SkuidValue", "SkuIndexValue","UnInitValueUint64", "UnInitValueUint32", "UnInitValueUint16", "UnInitValueUint8", "UnInitValueBoolean"]
- 
-    DbTotal = [InitValueUint64, VardefValueUint64, InitValueUint32, VardefValueUint32, VpdHeadValue, ExMapTable, 
-               LocalTokenNumberTable, GuidTable, StringHeadValue,  PcdNameOffsetTable,VariableTable,SkuTable, StringTableLen, PcdTokenTable,PcdCNameTable, 
+
+    DbTotal = [InitValueUint64, VardefValueUint64, InitValueUint32, VardefValueUint32, VpdHeadValue, ExMapTable,
+               LocalTokenNumberTable, GuidTable, StringHeadValue,  PcdNameOffsetTable,VariableTable,SkuTable, StringTableLen, PcdTokenTable,PcdCNameTable,
                SizeTableValue, InitValueUint16, VardefValueUint16,InitValueUint8, VardefValueUint8, InitValueBoolean,
                VardefValueBoolean, SkuidValue, SkuIndexValue, UnInitValueUint64, UnInitValueUint32, UnInitValueUint16, UnInitValueUint8, UnInitValueBoolean]
-    DbItemTotal = [DbInitValueUint64, DbVardefValueUint64, DbInitValueUint32, DbVardefValueUint32, DbVpdHeadValue, DbExMapTable, 
-               DbLocalTokenNumberTable, DbGuidTable, DbStringHeadValue,  DbPcdNameOffsetTable,DbVariableTable,DbSkuTable, DbStringTableLen, DbPcdTokenTable, DbPcdCNameTable, 
+    DbItemTotal = [DbInitValueUint64, DbVardefValueUint64, DbInitValueUint32, DbVardefValueUint32, DbVpdHeadValue, DbExMapTable,
+               DbLocalTokenNumberTable, DbGuidTable, DbStringHeadValue,  DbPcdNameOffsetTable,DbVariableTable,DbSkuTable, DbStringTableLen, DbPcdTokenTable, DbPcdCNameTable,
                DbSizeTableValue, DbInitValueUint16, DbVardefValueUint16,DbInitValueUint8, DbVardefValueUint8, DbInitValueBoolean,
                DbVardefValueBoolean, DbSkuidValue, DbSkuIndexValue, DbUnInitValueUint64, DbUnInitValueUint32, DbUnInitValueUint16, DbUnInitValueUint8, DbUnInitValueBoolean]
-    
+
     # SkuidValue is the last table in the init table items
     InitTableNum = DbTotal.index(SkuidValue) + 1 + 1 # +1 is for SkuIndexValue table
     # The FixedHeader length of the PCD_DATABASE_INIT, from Signature to Pad
     FixedHeaderLen = 64
 
-    # Get offset of SkuId table in the database 
+    # Get offset of SkuId table in the database
     SkuIdTableOffset = FixedHeaderLen
-    for DbIndex in xrange(len(DbTotal)):
+    for DbIndex in range(len(DbTotal)):
         if DbTotal[DbIndex] is SkuidValue:
             break
         SkuIdTableOffset += DbItemTotal[DbIndex].GetListSize()
-    
-    
-    # Get offset of SkuValue table in the database    
+
+
+    # Get offset of SkuValue table in the database
     SkuTableOffset = FixedHeaderLen
-    for DbIndex in xrange(len(DbTotal)):
+    for DbIndex in range(len(DbTotal)):
         if DbTotal[DbIndex] is SkuTable:
             break
         SkuTableOffset += DbItemTotal[DbIndex].GetListSize()
     PcdTokenTableDbOffset = FixedHeaderLen
-    for DbIndex in xrange(len(DbTotal)):
+    for DbIndex in range(len(DbTotal)):
         if DbTotal[DbIndex] is PcdTokenTable:
             break
         PcdTokenTableDbOffset += DbItemTotal[DbIndex].GetListSize()
-    
+
     PcdCNameTableDbOffset = FixedHeaderLen
-    for DbIndex in xrange(len(DbTotal)):
+    for DbIndex in range(len(DbTotal)):
         if DbTotal[DbIndex] is PcdCNameTable:
             break
         PcdCNameTableDbOffset += DbItemTotal[DbIndex].GetListSize()
     # Fix up the LocalTokenNumberTable, SkuHeader table
     SkuHeaderIndex = 0
     if len(Dict['SKU_INDEX_VALUE']) > 0:
-        SkuIndexIndexTable = [(0) for i in xrange(len(Dict['SKU_INDEX_VALUE']))]
+        SkuIndexIndexTable = [(0) for i in range(len(Dict['SKU_INDEX_VALUE']))]
         SkuIndexIndexTable[0] = 0  #Dict['SKU_INDEX_VALUE'][0][0]
         for i in range(1,len(Dict['SKU_INDEX_VALUE'])):
             SkuIndexIndexTable[i] = SkuIndexIndexTable[i-1]+Dict['SKU_INDEX_VALUE'][i-1][0] + 1
     for (LocalTokenNumberTableIndex, (Offset, Table)) in enumerate(LocalTokenNumberTable):
         DbIndex = 0
         DbOffset = FixedHeaderLen
-        for DbIndex in xrange(len(DbTotal)):
+        for DbIndex in range(len(DbTotal)):
             if DbTotal[DbIndex] is Table:
                 DbOffset += DbItemTotal[DbIndex].GetInterOffset(Offset)
                 break
@@ -846,26 +847,26 @@ def BuildExDataBase(Dict):
         TokenTypeValue = GetTokenTypeValue(TokenTypeValue)
         LocalTokenNumberTable[LocalTokenNumberTableIndex] = DbOffset|int(TokenTypeValue)
         # if PCD_TYPE_SKU_ENABLED, then we need to fix up the SkuTable
-        
+
         SkuIndexTabalOffset = SkuIdTableOffset + Dict['SKUID_VALUE'][0] + 1
         if (TokenTypeValue & (0x2 << 28)):
             SkuTable[SkuHeaderIndex] = (DbOffset|int(TokenTypeValue & ~(0x2<<28)), SkuIndexTabalOffset + SkuIndexIndexTable[PcdTokenNumberMap[LocalTokenNumberTableIndex]])
             LocalTokenNumberTable[LocalTokenNumberTableIndex] = (SkuTableOffset + SkuHeaderIndex * 8) | int(TokenTypeValue)
             SkuHeaderIndex += 1
-        
-    
+
+
     if SkuHeaderIndex == 0:
         SkuHeaderIndex = 1
     assert(SkuHeaderIndex == NumberOfSkuEnabledPcd)
 
-    # resolve variable table offset 
+    # resolve variable table offset
     for VariableEntries in VariableTable:
         skuindex = 0
         for VariableEntryPerSku in VariableEntries:
             (VariableHeadGuidIndex, VariableHeadStringIndex, SKUVariableOffset, VariableOffset, VariableRefTable, VariableAttribute) = VariableEntryPerSku[:]
             DbIndex = 0
             DbOffset = FixedHeaderLen
-            for DbIndex in xrange(len(DbTotal)):
+            for DbIndex in range(len(DbTotal)):
                 if DbTotal[DbIndex] is VariableRefTable:
                     DbOffset += DbItemTotal[DbIndex].GetInterOffset(VariableOffset)
                     break
@@ -876,7 +877,7 @@ def BuildExDataBase(Dict):
             else:
                 assert(False)
             if isinstance(VariableRefTable[0],list):
-                DbOffset += skuindex * 4   
+                DbOffset += skuindex * 4
             skuindex += 1
             if DbIndex >= InitTableNum:
                 assert(False)
@@ -885,7 +886,7 @@ def BuildExDataBase(Dict):
 
     # calculate various table offset now
     DbTotalLength = FixedHeaderLen
-    for DbIndex in xrange(len(DbItemTotal)):
+    for DbIndex in range(len(DbItemTotal)):
         if DbItemTotal[DbIndex] is DbLocalTokenNumberTable:
             LocalTokenNumberTableOffset = DbTotalLength
         elif DbItemTotal[DbIndex] is DbExMapTable:
@@ -903,28 +904,28 @@ def BuildExDataBase(Dict):
 
         DbTotalLength += DbItemTotal[DbIndex].GetListSize()
     if not Dict['PCD_INFO_FLAG']:
-        DbPcdNameOffset  = 0   
+        DbPcdNameOffset  = 0
     LocalTokenCount = GetIntegerValue(Dict['LOCAL_TOKEN_NUMBER'])
     ExTokenCount = GetIntegerValue(Dict['EX_TOKEN_NUMBER'])
     GuidTableCount = GetIntegerValue(Dict['GUID_TABLE_SIZE'])
     SystemSkuId = GetIntegerValue(Dict['SYSTEM_SKU_ID_VALUE'])
     Pad = 0xDA
-    
+
     UninitDataBaseSize  = 0
     for Item in (DbUnInitValueUint64, DbUnInitValueUint32, DbUnInitValueUint16, DbUnInitValueUint8, DbUnInitValueBoolean):
         UninitDataBaseSize += Item.GetListSize()
-    
+
     if (DbTotalLength - UninitDataBaseSize) % 8:
         DbTotalLength += (8 - (DbTotalLength - UninitDataBaseSize) % 8)
     # Construct the database buffer
     Guid = "{0x3c7d193c, 0x682c, 0x4c14, 0xa6, 0x8f, 0x55, 0x2d, 0xea, 0x4f, 0x43, 0x7e}"
     Guid = StringArrayToList(Guid)
-    Buffer = pack('=LHHBBBBBBBB', 
-                Guid[0], 
-                Guid[1], 
-                Guid[2], 
-                Guid[3], 
-                Guid[4],  
+    Buffer = pack('=LHHBBBBBBBB',
+                Guid[0],
+                Guid[1],
+                Guid[2],
+                Guid[3],
+                Guid[4],
                 Guid[5],
                 Guid[6],
                 Guid[7],
@@ -946,7 +947,7 @@ def BuildExDataBase(Dict):
 
     Buffer += b
     b = pack('=L', ExMapTableOffset)
- 
+
     Buffer += b
     b = pack('=L', GuidTableOffset)
 
@@ -970,26 +971,26 @@ def BuildExDataBase(Dict):
 
     Buffer += b
     b = pack('=H', GuidTableCount)
- 
+
     Buffer += b
     b = pack('=B', SystemSkuId)
- 
+
     Buffer += b
     b = pack('=B', Pad)
- 
+
     Buffer += b
-    
+
     Index = 0
     for Item in DbItemTotal:
         Index +=1
         b = Item.PackData()
-        Buffer += b  
+        Buffer += b
         if Index == InitTableNum:
             if len(Buffer) % 8:
                 for num in range(8 - len(Buffer) % 8):
                     b = pack('=B', Pad)
                     Buffer += b
-            break        
+            break
     return Buffer
 
 ## Create code for PCD database
@@ -1056,8 +1057,8 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
         'SYSTEM_SKU_ID'                 : '  SKU_ID             SystemSkuId;',
         'SYSTEM_SKU_ID_VALUE'           : '0U'
     }
-    
-   
+
+
     SkuObj = SkuClass(Platform.Platform.AvilableSkuIds, Platform.Platform.SkuIds)
     Dict['SYSTEM_SKU_ID_VALUE'] = Platform.Platform.SkuIds[SkuObj.SystemSkuId]
 
@@ -1075,7 +1076,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             Dict[Init+'_NUMSKUS_DECL_' + DatumType] = []
             Dict[Init+'_VALUE_' + DatumType]        = []
             Dict[Init+'_DB_VALUE_'+DatumType] = []
-            
+
     for Type in ['STRING_HEAD','VPD_HEAD','VARIABLE_HEAD']:
         Dict[Type + '_CNAME_DECL']   = []
         Dict[Type + '_GUID_DECL']    = []
@@ -1085,7 +1086,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
     Dict['STRING_DB_VALUE'] = []
     Dict['VPD_DB_VALUE'] = []
     Dict['VARIABLE_DB_VALUE'] = []
-    
+
     Dict['STRING_TABLE_INDEX'] = []
     Dict['STRING_TABLE_LENGTH']  = []
     Dict['STRING_TABLE_CNAME'] = []
@@ -1110,19 +1111,19 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
     Dict['VARIABLE_DB_VALUE'] = []
     Dict['SKUHEAD_TABLE_VALUE'] = []
     Dict['SKU_INDEX_VALUE'] = []
-    
+
     Dict['PCD_TOKENSPACE'] = []
-    Dict['PCD_CNAME'] = [] 
+    Dict['PCD_CNAME'] = []
     Dict['PCD_TOKENSPACE_LENGTH'] = []
     Dict['PCD_CNAME_LENGTH'] = []
     Dict['PCD_TOKENSPACE_OFFSET'] = []
     Dict['PCD_CNAME_OFFSET'] = []
     Dict['PCD_TOKENSPACE_MAP'] = []
     Dict['PCD_NAME_OFFSET'] = []
-    
+
     Dict['PCD_ORDER_TOKEN_NUMBER_MAP'] = {}
     PCD_STRING_INDEX_MAP = {}
-    
+
     StringTableIndex = 0
     StringTableSize = 0
     NumberOfLocalTokens = 0
@@ -1184,10 +1185,10 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
         if len(Pcd.SkuInfoList) > 1:
             Pcd.TokenTypeList += ['PCD_TYPE_SKU_ENABLED']
             NumberOfSkuEnabledPcd += 1
-        
+
         SkuIndexTableTmp = []
-        SkuIndexTableTmp.append(0)  
-        SkuIdIndex = 1  
+        SkuIndexTableTmp.append(0)
+        SkuIdIndex = 1
         VariableHeadList = []
         for SkuName in Pcd.SkuInfoList:
             Sku = Pcd.SkuInfoList[SkuName]
@@ -1197,10 +1198,10 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
 
             if (SkuId + 'U') not in Dict['SKUID_VALUE']:
                 Dict['SKUID_VALUE'].append(SkuId + 'U')
-                
+
             SkuIndexTableTmp.append(SkuId+'U')
             SkuIdIndex += 1
-    
+
             if len(Sku.VariableName) > 0:
                 VariableGuidStructure = Sku.VariableGuidValue
                 VariableGuid = GuidStructureStringToGuidValueName(VariableGuidStructure)
@@ -1248,14 +1249,14 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                             StringHeadOffsetList.append(str(StringTableSize) + 'U')
                             VarStringDbOffsetList = []
                             VarStringDbOffsetList.append(StringTableSize)
-                            Dict['STRING_DB_VALUE'].append(VarStringDbOffsetList)      
+                            Dict['STRING_DB_VALUE'].append(VarStringDbOffsetList)
                             StringTableIndex += 1
                             StringTableSize += len(VariableNameStructure.replace(',',' ').split())
                         VariableHeadStringIndex = 0
                         for Index in range(Dict['STRING_TABLE_VALUE'].index(VariableNameStructure)):
                             VariableHeadStringIndex += Dict['STRING_TABLE_LENGTH'][Index]
                         VariableHeadList.append(VariableHeadStringIndex)
-                        
+
                 VariableHeadStringIndex = VariableHeadList[SkuIdIndex - 2]
                 # store VariableGuid to GuidTable and get the VariableHeadGuidIndex
 
@@ -1266,11 +1267,11 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
 
                 if "PCD_TYPE_STRING" in Pcd.TokenTypeList:
                     VariableHeadValueList.append('%dU, offsetof(%s_PCD_DATABASE, Init.%s_%s), %dU, %sU' %
-                                                 (VariableHeadStringIndex, Phase, CName, TokenSpaceGuid, 
+                                                 (VariableHeadStringIndex, Phase, CName, TokenSpaceGuid,
                                                  VariableHeadGuidIndex, Sku.VariableOffset))
                 else:
                     VariableHeadValueList.append('%dU, offsetof(%s_PCD_DATABASE, Init.%s_%s_VariableDefault_%s), %dU, %sU' %
-                                                 (VariableHeadStringIndex, Phase, CName, TokenSpaceGuid, SkuIdIndex, 
+                                                 (VariableHeadStringIndex, Phase, CName, TokenSpaceGuid, SkuIdIndex,
                                                  VariableHeadGuidIndex, Sku.VariableOffset))
                 Dict['VARDEF_CNAME_'+Pcd.DatumType].append(CName)
                 Dict['VARDEF_GUID_'+Pcd.DatumType].append(TokenSpaceGuid)
@@ -1283,7 +1284,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                     # warning under linux building environment.
                     #
                     Dict['VARDEF_DB_VALUE_'+Pcd.DatumType].append(Sku.HiiDefaultValue)
-                    
+
                     if Pcd.DatumType == "UINT64":
                         Dict['VARDEF_VALUE_'+Pcd.DatumType].append(Sku.HiiDefaultValue + "ULL")
                     elif Pcd.DatumType in ("UINT32", "UINT16", "UINT8"):
@@ -1316,13 +1317,13 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                 Pcd.InitString = 'INIT'
                 VpdHeadOffsetList.append(str(Sku.VpdOffset) + 'U')
                 VpdDbOffsetList.append(Sku.VpdOffset)
-                # Also add the VOID* string of VPD PCD to SizeTable 
+                # Also add the VOID* string of VPD PCD to SizeTable
                 if Pcd.DatumType == 'VOID*':
                     NumberOfSizeItems += 1
                     # For VPD type of PCD, its current size is equal to its MAX size.
-                    VoidStarTypeCurrSize = [str(Pcd.MaxDatumSize) + 'U']                 
+                    VoidStarTypeCurrSize = [str(Pcd.MaxDatumSize) + 'U']
                 continue
-          
+
             if Pcd.DatumType == 'VOID*':
                 Pcd.TokenTypeList += ['PCD_TYPE_STRING']
                 Pcd.InitString = 'INIT'
@@ -1349,7 +1350,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                         DefaultValueBinStructure = StringToArray(Sku.DefaultValue)
                         Size = len(Sku.DefaultValue.split(","))
                         Dict['STRING_TABLE_VALUE'].append(DefaultValueBinStructure)
-                    
+
                     StringHeadOffsetList.append(str(StringTableSize) + 'U')
                     StringDbOffsetList.append(StringTableSize)
                     if Pcd.MaxDatumSize != '':
@@ -1375,7 +1376,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                         Pcd.InitString = 'INIT'
                     else:
                         if int(Sku.DefaultValue, 0) != 0:
-                            Pcd.InitString = 'INIT'              
+                            Pcd.InitString = 'INIT'
                 #
                 # For UNIT64 type PCD's value, ULL should be append to avoid
                 # warning under linux building environment.
@@ -1386,23 +1387,23 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                     ValueList.append(Sku.DefaultValue + "U")
                 elif Pcd.DatumType == "BOOLEAN":
                     if Sku.DefaultValue in ["1", "0"]:
-                        ValueList.append(Sku.DefaultValue + "U")              
+                        ValueList.append(Sku.DefaultValue + "U")
                 else:
                     ValueList.append(Sku.DefaultValue)
-                
+
                 DbValueList.append(Sku.DefaultValue)
 
         Pcd.TokenTypeList = list(set(Pcd.TokenTypeList))
-        if Pcd.DatumType == 'VOID*':  
+        if Pcd.DatumType == 'VOID*':
             Dict['SIZE_TABLE_CNAME'].append(CName)
             Dict['SIZE_TABLE_GUID'].append(TokenSpaceGuid)
             Dict['SIZE_TABLE_MAXIMUM_LENGTH'].append(str(Pcd.MaxDatumSize) + 'U')
             Dict['SIZE_TABLE_CURRENT_LENGTH'].append(VoidStarTypeCurrSize)
-        
-        
+
+
         SkuIndexTableTmp[0] = len(SkuIndexTableTmp) - 1
         if len(Pcd.SkuInfoList) > 1:
-            Dict['SKU_INDEX_VALUE'].append(SkuIndexTableTmp)            
+            Dict['SKU_INDEX_VALUE'].append(SkuIndexTableTmp)
 
         if 'PCD_TYPE_HII' in Pcd.TokenTypeList:
             Dict['VARIABLE_HEAD_CNAME_DECL'].append(CName)
@@ -1435,7 +1436,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             else:
                 Dict[Pcd.InitString+'_VALUE_'+Pcd.DatumType].append(', '.join(ValueList))
                 Dict[Pcd.InitString+'_DB_VALUE_'+Pcd.DatumType].append(DbValueList)
-                
+
     if Phase == 'PEI':
         NumberOfLocalTokens = NumberOfPeiLocalTokens
     if Phase == 'DXE':
@@ -1447,7 +1448,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
     Dict['TOKEN_TYPE']       = ['' for x in range(NumberOfLocalTokens)]
     Dict['LOCAL_TOKEN_NUMBER_DB_VALUE'] = ['' for x in range(NumberOfLocalTokens)]
     Dict['PCD_CNAME']        = ['' for x in range(NumberOfLocalTokens)]
-    Dict['PCD_TOKENSPACE_MAP'] = ['' for x in range(NumberOfLocalTokens)]  
+    Dict['PCD_TOKENSPACE_MAP'] = ['' for x in range(NumberOfLocalTokens)]
     Dict['PCD_CNAME_LENGTH'] = [0 for x in range(NumberOfLocalTokens)]
     SkuEnablePcdIndex = 0
     for Pcd in ReorderedDynPcdList:
@@ -1467,7 +1468,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
         EdkLogger.debug(EdkLogger.DEBUG_1, "PCD = %s.%s" % (CName, TokenSpaceGuidCName))
         EdkLogger.debug(EdkLogger.DEBUG_1, "phase = %s" % Phase)
         EdkLogger.debug(EdkLogger.DEBUG_1, "GeneratedTokenNumber = %s" % str(GeneratedTokenNumber))
-        
+
         #
         # following four Dict items hold the information for LocalTokenNumberTable
         #
@@ -1478,7 +1479,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
         Dict['TOKEN_CNAME'][GeneratedTokenNumber] = CName
         Dict['TOKEN_GUID'][GeneratedTokenNumber] = TokenSpaceGuid
         Dict['TOKEN_TYPE'][GeneratedTokenNumber] = ' | '.join(Pcd.TokenTypeList)
-        
+
         if Platform.Platform.PcdInfoFlag:
             TokenSpaceGuidCNameArray = StringToArray('"' + TokenSpaceGuidCName + '"' )
             if TokenSpaceGuidCNameArray not in Dict['PCD_TOKENSPACE']:
@@ -1487,10 +1488,10 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             Dict['PCD_TOKENSPACE_MAP'][GeneratedTokenNumber] = Dict['PCD_TOKENSPACE'].index(TokenSpaceGuidCNameArray)
             CNameBinArray = StringToArray('"' + CName + '"' )
             Dict['PCD_CNAME'][GeneratedTokenNumber] = CNameBinArray
-            
+
             Dict['PCD_CNAME_LENGTH'][GeneratedTokenNumber] = len(CNameBinArray.split(","))
-        
-        
+
+
         Pcd.TokenTypeList = list(set(Pcd.TokenTypeList))
 
         # search the Offset and Table, used by LocalTokenNumberTableOffset
@@ -1516,7 +1517,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             if Pcd.InitString == 'UNINIT':
                 Table =  Dict[Pcd.InitString+'_GUID_DECL_'+Pcd.DatumType]
             else:
-                Table = Dict[Pcd.InitString+'_DB_VALUE_'+Pcd.DatumType]               
+                Table = Dict[Pcd.InitString+'_DB_VALUE_'+Pcd.DatumType]
         Dict['LOCAL_TOKEN_NUMBER_DB_VALUE'][GeneratedTokenNumber] = (Offset, Table)
 
         #
@@ -1526,10 +1527,10 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             Dict['VARDEF_HEADER'][GeneratedTokenNumber] = '_Variable_Header'
         else:
             Dict['VARDEF_HEADER'][GeneratedTokenNumber] = ''
-       
-        
+
+
         if Pcd.Type in gDynamicExPcd:
-            
+
             if Phase == 'DXE':
                 GeneratedTokenNumber += NumberOfPeiLocalTokens
             #
@@ -1541,7 +1542,7 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             # Therefore, 1 is added to GeneratedTokenNumber to generate a PCD Token Number before being inserted
             # to the EXMAPPING_TABLE.
             #
-            
+
 
             Dict['EXMAPPING_TABLE_EXTOKEN'].append(str(Pcd.TokenValue) + 'U')
             Dict['EXMAPPING_TABLE_LOCAL_TOKEN'].append(str(GeneratedTokenNumber + 1) + 'U')
@@ -1552,12 +1553,12 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
             TokenSpaceIndex = StringTableSize
             for i in range(Dict['PCD_TOKENSPACE_MAP'][index]):
                 TokenSpaceIndex += Dict['PCD_TOKENSPACE_LENGTH'][i]
-            Dict['PCD_TOKENSPACE_OFFSET'].append(TokenSpaceIndex)   
+            Dict['PCD_TOKENSPACE_OFFSET'].append(TokenSpaceIndex)
         for index in range(len(Dict['PCD_TOKENSPACE'])):
             StringTableSize += Dict['PCD_TOKENSPACE_LENGTH'][index]
             StringTableIndex += 1
         for index in range(len(Dict['PCD_CNAME'])):
-            Dict['PCD_CNAME_OFFSET'].append(StringTableSize)        
+            Dict['PCD_CNAME_OFFSET'].append(StringTableSize)
             Dict['PCD_NAME_OFFSET'].append(Dict['PCD_TOKENSPACE_OFFSET'][index])
             Dict['PCD_NAME_OFFSET'].append(StringTableSize)
             StringTableSize += Dict['PCD_CNAME_LENGTH'][index]
@@ -1600,15 +1601,15 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
 
     if NumberOfSizeItems != 0:
         Dict['SIZE_TABLE_SIZE'] = str(NumberOfSizeItems * 2) + 'U'
-    
-    if NumberOfSkuEnabledPcd != 0: 
+
+    if NumberOfSkuEnabledPcd != 0:
         Dict['SKU_HEAD_SIZE'] = str(NumberOfSkuEnabledPcd) + 'U'
-    
+
     for AvailableSkuNumber in SkuObj.SkuIdNumberSet:
         if AvailableSkuNumber not in Dict['SKUID_VALUE']:
             Dict['SKUID_VALUE'].append(AvailableSkuNumber)
     Dict['SKUID_VALUE'][0] = len(Dict['SKUID_VALUE']) - 1
-    
+
     AutoGenH.Append(gPcdDatabaseAutoGenH.Replace(Dict))
     if NumberOfLocalTokens == 0:
         AutoGenC.Append(gEmptyPcdDatabaseAutoGenC.Replace(Dict))
@@ -1621,11 +1622,11 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
         SizeCurLenTempList = []
         SizeMaxLenTempList = []
         ReOrderFlag = True
-  
+
         if len(Dict['SIZE_TABLE_CNAME']) == 1:
             if not (Dict['SIZE_TABLE_CNAME'][0] and Dict['SIZE_TABLE_GUID'][0]):
                 ReOrderFlag = False
-        
+
         if ReOrderFlag:
             for Count in range(len(Dict['TOKEN_CNAME'])):
                 for Count1 in range(len(Dict['SIZE_TABLE_CNAME'])):
@@ -1635,15 +1636,15 @@ def CreatePcdDatabasePhaseSpecificAutoGen (Platform, Phase):
                         SizeGuidTempList.append(Dict['SIZE_TABLE_GUID'][Count1])
                         SizeCurLenTempList.append(Dict['SIZE_TABLE_CURRENT_LENGTH'][Count1])
                         SizeMaxLenTempList.append(Dict['SIZE_TABLE_MAXIMUM_LENGTH'][Count1])
-                        
+
             for Count in range(len(Dict['SIZE_TABLE_CNAME'])):
                 Dict['SIZE_TABLE_CNAME'][Count] = SizeCNameTempList[Count]
                 Dict['SIZE_TABLE_GUID'][Count] = SizeGuidTempList[Count]
                 Dict['SIZE_TABLE_CURRENT_LENGTH'][Count] = SizeCurLenTempList[Count]
                 Dict['SIZE_TABLE_MAXIMUM_LENGTH'][Count] = SizeMaxLenTempList[Count]
-                
+
         AutoGenC.Append(gPcdDatabaseAutoGenC.Replace(Dict))
-    
+
     if Platform.Platform.VarCheckFlag:
         dest = os.path.join(Platform.BuildDir, 'FV')
         VarCheckTab.dump(dest, Phase)
@@ -1656,4 +1657,3 @@ def GetOrderedDynamicPcdList(DynamicPcdList, PcdTokenNumberList):
         if (Pcd.TokenCName, Pcd.TokenSpaceGuidCName) in PcdTokenNumberList:
             ReorderedDyPcdList[PcdTokenNumberList[Pcd.TokenCName, Pcd.TokenSpaceGuidCName]-1] = Pcd
     return ReorderedDyPcdList
-

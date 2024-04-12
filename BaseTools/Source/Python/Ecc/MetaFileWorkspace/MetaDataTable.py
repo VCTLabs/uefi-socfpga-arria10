@@ -22,7 +22,7 @@ from CommonDataClass.DataClass import FileClass
 
 ## Convert to SQL required string format
 def ConvertToSqlString(StringList):
-    return map(lambda s: "'" + s.replace("'", "''") + "'", StringList)
+    return ["'" + s.replace("'", "''") + "'" for s in StringList]
 
 ## TableFile
 #
@@ -98,8 +98,8 @@ class Table(object):
         SqlCommand = """drop table IF EXISTS %s""" % self.Table
         try:
             self.Cur.execute(SqlCommand)
-        except Exception, e:
-            print "An error occurred when Drop a table:", e.args[0]
+        except Exception as e:
+            print("An error occurred when Drop a table:", e.args[0])
 
     ## Get count
     #
@@ -215,4 +215,3 @@ class TableDataModel(Table):
             CrossIndex = Item[0]
 
         return CrossIndex
-

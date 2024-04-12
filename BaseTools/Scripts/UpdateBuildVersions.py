@@ -17,7 +17,7 @@
 #  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 ##
 """ This program will update the BuildVersion.py and BuildVersion.h files used to set a tool's version value """
-from __future__ import absolute_import
+
 
 import os
 import shlex
@@ -90,7 +90,8 @@ def ShellCommandResults(CmdLine, Opt):
             sys.stderr.flush()
         returnValue = err_val.returncode
 
-    except IOError as (errno, strerror):
+    except IOError as xxx_todo_changeme:
+        (errno, strerror) = xxx_todo_changeme.args
         file_list.close()
         if not Opt.silent:
             sys.stderr.write("I/O ERROR : %s : %s\n" % (str(errno), strerror))
@@ -100,7 +101,8 @@ def ShellCommandResults(CmdLine, Opt):
             sys.stderr.flush()
         returnValue = errno
 
-    except OSError as (errno, strerror):
+    except OSError as xxx_todo_changeme1:
+        (errno, strerror) = xxx_todo_changeme1.args
         file_list.close()
         if not Opt.silent:
             sys.stderr.write("OS ERROR : %s : %s\n" % (str(errno), strerror))
@@ -210,13 +212,15 @@ def RevertCmd(Filename, Opt):
             sys.stderr.write("Subprocess ERROR : %s\n" % err_val)
             sys.stderr.flush()
 
-    except IOError as (errno, strerror):
+    except IOError as xxx_todo_changeme2:
+        (errno, strerror) = xxx_todo_changeme2.args
         if not Opt.silent:
             sys.stderr.write("I/O ERROR : %d : %s\n" % (str(errno), strerror))
             sys.stderr.write("ERROR : this command failed : %s\n" % CmdLine)
             sys.stderr.flush()
 
-    except OSError as (errno, strerror):
+    except OSError as xxx_todo_changeme3:
+        (errno, strerror) = xxx_todo_changeme3.args
         if not Opt.silent:
             sys.stderr.write("OS ERROR : %d : %s\n" % (str(errno), strerror))
             sys.stderr.write("ERROR : this command failed : %s\n" % CmdLine)
@@ -363,10 +367,10 @@ def UpdateRevisionFiles():
     """ Main routine that will update the BuildVersion.py and BuildVersion.h files."""
     options = ParseOptions()
     # Check the working environment
-    if "WORKSPACE" not in os.environ.keys():
+    if "WORKSPACE" not in list(os.environ.keys()):
         sys.stderr.write(SYS_ENV_ERR % 'WORKSPACE')
         return 1
-    if 'BASE_TOOLS_PATH' not in os.environ.keys():
+    if 'BASE_TOOLS_PATH' not in list(os.environ.keys()):
         sys.stderr.write(SYS_ENV_ERR % 'BASE_TOOLS_PATH')
         return 1
     if not os.path.exists(os.environ['BASE_TOOLS_PATH']):
@@ -396,5 +400,3 @@ def UpdateRevisionFiles():
 
 if __name__ == "__main__":
     sys.exit(UpdateRevisionFiles())
-
-

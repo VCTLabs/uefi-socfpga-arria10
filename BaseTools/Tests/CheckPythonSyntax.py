@@ -29,7 +29,7 @@ class Tests(TestTools.BaseToolsTest):
     def SingleFileTest(self, filename):
         try:
             py_compile.compile(filename, doraise=True)
-        except Exception, e:
+        except Exception as e:
             self.fail('syntax error: %s, Error is %s' % (filename, str(e)))
 
 def MakePythonSyntaxCheckTests():
@@ -55,8 +55,8 @@ def MakePythonSyntaxCheckTests():
         newmethod = lambda self: self.SingleFileTest(filename)
         setattr(
             Tests,
-            test, 
-            newmethod
+            test,
+            newmethod,
             )
 
     for filename in GetAllPythonSourceFiles():
@@ -70,5 +70,3 @@ TheTestSuite = TestTools.MakeTheTestSuite(locals())
 if __name__ == '__main__':
     allTests = TheTestSuite()
     unittest.TextTestRunner().run(allTests)
-
-

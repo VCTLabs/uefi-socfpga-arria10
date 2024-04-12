@@ -15,11 +15,11 @@
 ##
 # Import Modules
 #
-from Ffs import Ffs
-import Section
+from .Ffs import Ffs
+from . import Section
 import subprocess
 import Common.LongFilePathOs as os
-from GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
 from CommonDataClass.FdfClass import CompressSectionClassObject
 
 ## generate compress section
@@ -83,5 +83,3 @@ class CompressSection (CompressSectionClassObject) :
         OutputFileList = []
         OutputFileList.append(OutputFile)
         return OutputFileList, self.Alignment
-
-

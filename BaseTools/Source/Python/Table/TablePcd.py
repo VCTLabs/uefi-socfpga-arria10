@@ -15,13 +15,13 @@
 # Import Modules
 #
 import Common.EdkLogger as EdkLogger
-from Table import Table
+from .Table import Table
 from Common.String import ConvertToSqlString
 
 ## TablePcd
 #
 # This class defined a table used for pcds
-# 
+#
 # @param object:       Inherited from object class
 #
 #
@@ -29,7 +29,7 @@ class TablePcd(Table):
     def __init__(self, Cursor):
         Table.__init__(self, Cursor)
         self.Table = 'Pcd'
-    
+
     ## Create table
     #
     # Create table Pcd

@@ -15,13 +15,13 @@
 # Import Modules
 #
 import re
-import DataType
 import Common.LongFilePathOs as os
 import string
-import EdkLogger as EdkLogger
 
-import GlobalData
-from BuildToolError import *
+from . import DataType
+from . import EdkLogger
+from . import GlobalData
+from .BuildToolError import *
 from CommonDataClass.Exceptions import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
@@ -86,7 +86,7 @@ def GetSplitValueList(String, SplitTag=DataType.TAB_VALUE_SPLIT, MaxSplit= -1):
 # @retval list() A list for splitted string
 #
 def GetSplitList(String, SplitStr=DataType.TAB_VALUE_SPLIT, MaxSplit= -1):
-    return map(lambda l: l.strip(), String.split(SplitStr, MaxSplit))
+    return [l.strip() for l in String.split(SplitStr, MaxSplit)]
 
 ## MergeArches
 #
@@ -98,7 +98,7 @@ def GetSplitList(String, SplitStr=DataType.TAB_VALUE_SPLIT, MaxSplit= -1):
 # @param Arch:  The Arch to be added or merged
 #
 def MergeArches(Dict, Key, Arch):
-    if Key in Dict.keys():
+    if Key in list(Dict.keys()):
         Dict[Key].append(Arch)
     else:
         Dict[Key] = Arch.split()
@@ -521,7 +521,7 @@ def GetSingleValueOfKeyFromLines(Lines, Dictionary, CommentCharacter, KeySplitCh
                 #
                 LineList[1] = CleanString(LineList[1], CommentCharacter)
                 if ValueSplitFlag:
-                    Value = map(string.strip, LineList[1].split(ValueSplitCharacter))
+                    Value = list(map(string.strip, LineList[1].split(ValueSplitCharacter)))
                 else:
                     Value = CleanString(LineList[1], CommentCharacter).splitlines()
 
@@ -727,7 +727,7 @@ def SplitString(String):
 # @param StringList:  A list for strings to be converted
 #
 def ConvertToSqlString(StringList):
-    return map(lambda s: s.replace("'", "''") , StringList)
+    return [s.replace("'", "''") for s in StringList]
 
 ## Convert To Sql String
 #
@@ -792,8 +792,8 @@ def GetHelpTextList(HelpTextClassList):
     return List
 
 def StringToArray(String):
-    if isinstance(String, unicode):
-        if len(unicode) == 0:
+    if isinstance(String, str):
+        if len(str) == 0:
             return "{0x00, 0x00}"
         return "{%s, 0x00, 0x00}" % ", ".join(["0x%02x, 0x00" % ord(C) for C in String])
     elif String.startswith('L"'):
@@ -816,7 +816,7 @@ def StringToArray(String):
             return "{%s, 0x00}" % ", ".join([ C for C in String[1:-1].split(',')])
         else:
             return "{%s}" % ", ".join([ C for C in String[1:-1].split(',')])
-        
+
     else:
         if len(String.split()) % 2:
             return '{%s, 0}' % ', '.join(String.split())
@@ -824,7 +824,7 @@ def StringToArray(String):
             return '{%s, 0,0}' % ', '.join(String.split())
 
 def StringArrayLength(String):
-    if isinstance(String, unicode):
+    if isinstance(String, str):
         return (len(String) + 1) * 2 + 1;
     elif String.startswith('L"'):
         return (len(String) - 3 + 1) * 2
@@ -859,4 +859,3 @@ def RemoveDupOption(OptionString, Which="/I", Against=None):
 #
 if __name__ == '__main__':
     pass
-

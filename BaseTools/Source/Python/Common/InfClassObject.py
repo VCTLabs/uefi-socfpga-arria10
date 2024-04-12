@@ -16,19 +16,19 @@
 #
 import Common.LongFilePathOs as os
 import re
-import EdkLogger
+from . import EdkLogger
 from CommonDataClass.CommonClass import LibraryClassClass
 from CommonDataClass.ModuleClass import *
-from String import *
-from DataType import *
-from Identification import *
-from Dictionary import *
-from BuildToolError import *
-from Misc import sdict
-import GlobalData
+from .String import *
+from .DataType import *
+from .Identification import *
+from .Dictionary import *
+from .BuildToolError import *
+from .Misc import sdict
+from . import GlobalData
 from Table.TableInf import TableInf
-import Database
-from Parsing import *
+from . import Database
+from .Parsing import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
 #
@@ -187,7 +187,7 @@ class Inf(InfObject):
         #
         # Upper all KEYs to ignore case sensitive when parsing
         #
-        self.KeyList = map(lambda c: c.upper(), self.KeyList)
+        self.KeyList = [c.upper() for c in self.KeyList]
 
         #
         # Init RecordSet
@@ -446,80 +446,80 @@ class Inf(InfObject):
     #
     def ShowModule(self):
         M = self.Module
-        for Arch in M.Header.keys():
-            print '\nArch =', Arch
-            print 'Filename =', M.Header[Arch].FileName
-            print 'FullPath =', M.Header[Arch].FullPath
-            print 'BaseName =', M.Header[Arch].Name
-            print 'Guid =', M.Header[Arch].Guid
-            print 'Version =', M.Header[Arch].Version
-            print 'InfVersion =', M.Header[Arch].InfVersion
-            print 'UefiSpecificationVersion =', M.Header[Arch].UefiSpecificationVersion
-            print 'EdkReleaseVersion =', M.Header[Arch].EdkReleaseVersion
-            print 'ModuleType =', M.Header[Arch].ModuleType
-            print 'BinaryModule =', M.Header[Arch].BinaryModule
-            print 'ComponentType =', M.Header[Arch].ComponentType
-            print 'MakefileName =', M.Header[Arch].MakefileName
-            print 'BuildNumber =', M.Header[Arch].BuildNumber
-            print 'BuildType =', M.Header[Arch].BuildType
-            print 'FfsExt =', M.Header[Arch].FfsExt
-            print 'FvExt =', M.Header[Arch].FvExt
-            print 'SourceFv =', M.Header[Arch].SourceFv
-            print 'PcdIsDriver =', M.Header[Arch].PcdIsDriver
-            print 'TianoEdkFlashMap_h =', M.Header[Arch].TianoEdkFlashMap_h
-            print 'Shadow =', M.Header[Arch].Shadow
-            print 'LibraryClass =', M.Header[Arch].LibraryClass
+        for Arch in list(M.Header.keys()):
+            print('\nArch =', Arch)
+            print('Filename =', M.Header[Arch].FileName)
+            print('FullPath =', M.Header[Arch].FullPath)
+            print('BaseName =', M.Header[Arch].Name)
+            print('Guid =', M.Header[Arch].Guid)
+            print('Version =', M.Header[Arch].Version)
+            print('InfVersion =', M.Header[Arch].InfVersion)
+            print('UefiSpecificationVersion =', M.Header[Arch].UefiSpecificationVersion)
+            print('EdkReleaseVersion =', M.Header[Arch].EdkReleaseVersion)
+            print('ModuleType =', M.Header[Arch].ModuleType)
+            print('BinaryModule =', M.Header[Arch].BinaryModule)
+            print('ComponentType =', M.Header[Arch].ComponentType)
+            print('MakefileName =', M.Header[Arch].MakefileName)
+            print('BuildNumber =', M.Header[Arch].BuildNumber)
+            print('BuildType =', M.Header[Arch].BuildType)
+            print('FfsExt =', M.Header[Arch].FfsExt)
+            print('FvExt =', M.Header[Arch].FvExt)
+            print('SourceFv =', M.Header[Arch].SourceFv)
+            print('PcdIsDriver =', M.Header[Arch].PcdIsDriver)
+            print('TianoEdkFlashMap_h =', M.Header[Arch].TianoEdkFlashMap_h)
+            print('Shadow =', M.Header[Arch].Shadow)
+            print('LibraryClass =', M.Header[Arch].LibraryClass)
             for Item in M.Header[Arch].LibraryClass:
-                print Item.LibraryClass, DataType.TAB_VALUE_SPLIT.join(Item.SupModuleList)
-            print 'CustomMakefile =', M.Header[Arch].CustomMakefile
-            print 'Define =', M.Header[Arch].Define
-            print 'Specification =', M.Header[Arch].Specification
+                print(Item.LibraryClass, DataType.TAB_VALUE_SPLIT.join(Item.SupModuleList))
+            print('CustomMakefile =', M.Header[Arch].CustomMakefile)
+            print('Define =', M.Header[Arch].Define)
+            print('Specification =', M.Header[Arch].Specification)
         for Item in self.Module.ExternImages:
-            print '\nEntry_Point = %s, UnloadImage = %s' % (Item.ModuleEntryPoint, Item.ModuleUnloadImage)
+            print('\nEntry_Point = %s, UnloadImage = %s' % (Item.ModuleEntryPoint, Item.ModuleUnloadImage))
         for Item in self.Module.ExternLibraries:
-            print 'Constructor = %s, Destructor = %s' % (Item.Constructor, Item.Destructor)
-        print '\nBuildOptions =', M.BuildOptions
+            print('Constructor = %s, Destructor = %s' % (Item.Constructor, Item.Destructor))
+        print('\nBuildOptions =', M.BuildOptions)
         for Item in M.BuildOptions:
-            print Item.ToolChainFamily, Item.ToolChain, Item.Option, Item.SupArchList
-        print '\nIncludes =', M.Includes
+            print(Item.ToolChainFamily, Item.ToolChain, Item.Option, Item.SupArchList)
+        print('\nIncludes =', M.Includes)
         for Item in M.Includes:
-            print Item.FilePath, Item.SupArchList
-        print '\nLibraries =', M.Libraries
+            print(Item.FilePath, Item.SupArchList)
+        print('\nLibraries =', M.Libraries)
         for Item in M.Libraries:
-            print Item.Library, Item.SupArchList
-        print '\nLibraryClasses =', M.LibraryClasses
+            print(Item.Library, Item.SupArchList)
+        print('\nLibraryClasses =', M.LibraryClasses)
         for Item in M.LibraryClasses:
-            print Item.LibraryClass, Item.RecommendedInstance, Item.FeatureFlag, Item.SupModuleList, Item.SupArchList, Item.Define
-        print '\nPackageDependencies =', M.PackageDependencies
+            print(Item.LibraryClass, Item.RecommendedInstance, Item.FeatureFlag, Item.SupModuleList, Item.SupArchList, Item.Define)
+        print('\nPackageDependencies =', M.PackageDependencies)
         for Item in M.PackageDependencies:
-            print Item.FilePath, Item.SupArchList, Item.FeatureFlag
-        print '\nNmake =', M.Nmake
+            print(Item.FilePath, Item.SupArchList, Item.FeatureFlag)
+        print('\nNmake =', M.Nmake)
         for Item in M.Nmake:
-            print Item.Name, Item.Value, Item.SupArchList
-        print '\nPcds =', M.PcdCodes
+            print(Item.Name, Item.Value, Item.SupArchList)
+        print('\nPcds =', M.PcdCodes)
         for Item in M.PcdCodes:
-            print '\tCName=', Item.CName, 'TokenSpaceGuidCName=', Item.TokenSpaceGuidCName, 'DefaultValue=', Item.DefaultValue, 'ItemType=', Item.ItemType, Item.SupArchList
-        print '\nSources =', M.Sources
+            print('\tCName=', Item.CName, 'TokenSpaceGuidCName=', Item.TokenSpaceGuidCName, 'DefaultValue=', Item.DefaultValue, 'ItemType=', Item.ItemType, Item.SupArchList)
+        print('\nSources =', M.Sources)
         for Source in M.Sources:
-            print Source.SourceFile, 'Fam=', Source.ToolChainFamily, 'Pcd=', Source.FeatureFlag, 'Tag=', Source.TagName, 'ToolCode=', Source.ToolCode, Source.SupArchList
-        print '\nUserExtensions =', M.UserExtensions
+            print(Source.SourceFile, 'Fam=', Source.ToolChainFamily, 'Pcd=', Source.FeatureFlag, 'Tag=', Source.TagName, 'ToolCode=', Source.ToolCode, Source.SupArchList)
+        print('\nUserExtensions =', M.UserExtensions)
         for UserExtension in M.UserExtensions:
-            print UserExtension.UserID, UserExtension.Identifier, UserExtension.Content
-        print '\nGuids =', M.Guids
+            print(UserExtension.UserID, UserExtension.Identifier, UserExtension.Content)
+        print('\nGuids =', M.Guids)
         for Item in M.Guids:
-            print Item.CName, Item.SupArchList, Item.FeatureFlag
-        print '\nProtocols =', M.Protocols
+            print(Item.CName, Item.SupArchList, Item.FeatureFlag)
+        print('\nProtocols =', M.Protocols)
         for Item in M.Protocols:
-            print Item.CName, Item.SupArchList, Item.FeatureFlag
-        print '\nPpis =', M.Ppis
+            print(Item.CName, Item.SupArchList, Item.FeatureFlag)
+        print('\nPpis =', M.Ppis)
         for Item in M.Ppis:
-            print Item.CName, Item.SupArchList, Item.FeatureFlag
-        print '\nDepex =', M.Depex
+            print(Item.CName, Item.SupArchList, Item.FeatureFlag)
+        print('\nDepex =', M.Depex)
         for Item in M.Depex:
-            print Item.Depex, Item.SupArchList, Item.Define
-        print '\nBinaries =', M.Binaries
+            print(Item.Depex, Item.SupArchList, Item.Define)
+        print('\nBinaries =', M.Binaries)
         for Binary in M.Binaries:
-            print 'Type=', Binary.FileType, 'Target=', Binary.Target, 'Name=', Binary.BinaryFile, 'FeatureFlag=', Binary.FeatureFlag, 'SupArchList=', Binary.SupArchList
+            print('Type=', Binary.FileType, 'Target=', Binary.Target, 'Name=', Binary.BinaryFile, 'FeatureFlag=', Binary.FeatureFlag, 'SupArchList=', Binary.SupArchList)
 
     ## Convert [Defines] section content to ModuleHeaderClass
     #
@@ -666,7 +666,7 @@ class Inf(InfObject):
                                         where ID = %s""" % (self.TblInf.Table, ConvertToSqlString2(Family), ConvertToSqlString2(ToolChain), ConvertToSqlString2(Flag), Record[3])
                         self.TblInf.Exec(SqlCommand)
 
-        for Key in BuildOptions.keys():
+        for Key in list(BuildOptions.keys()):
             BuildOption = BuildOptionClass(Key[0], Key[1], Key[2])
             BuildOption.SupArchList = BuildOptions[Key]
             self.Module.BuildOptions.append(BuildOption)
@@ -694,7 +694,7 @@ class Inf(InfObject):
                 if Record[1] == Arch or Record[1] == TAB_ARCH_COMMON:
                     MergeArches(Includes, Record[0], Arch)
 
-        for Key in Includes.keys():
+        for Key in list(Includes.keys()):
             Include = IncludeClass()
             Include.FilePath = NormPath(Key)
             Include.SupArchList = Includes[Key]
@@ -723,7 +723,7 @@ class Inf(InfObject):
                 if Record[1] == Arch or Record[1] == TAB_ARCH_COMMON:
                     MergeArches(Libraries, Record[0], Arch)
 
-        for Key in Libraries.keys():
+        for Key in list(Libraries.keys()):
             Library = ModuleLibraryClass()
             # replace macro and remove file extension
             Library.Library = Key.rsplit('.', 1)[0]
@@ -761,7 +761,7 @@ class Inf(InfObject):
                                         where ID = %s""" % (self.TblInf.Table, ConvertToSqlString2(LibClassName), ConvertToSqlString2(LibClassIns), ConvertToSqlString2(SupModelList), Record[3])
                         self.TblInf.Exec(SqlCommand)
 
-        for Key in LibraryClasses.keys():
+        for Key in list(LibraryClasses.keys()):
             KeyList = Key[0].split(DataType.TAB_VALUE_SPLIT)
             LibraryClass = LibraryClassClass()
             LibraryClass.LibraryClass = Key[0]
@@ -800,7 +800,7 @@ class Inf(InfObject):
                         self.TblInf.Exec(SqlCommand)
 
 
-        for Key in Packages.keys():
+        for Key in list(Packages.keys()):
             Package = ModulePackageDependencyClass()
             Package.FilePath = NormPath(Key[0])
             Package.SupArchList = Packages[Key]
@@ -831,7 +831,7 @@ class Inf(InfObject):
                 if Record[1] == Arch or Record[1] == TAB_ARCH_COMMON:
                     MergeArches(Nmakes, Record[0], Arch)
 
-        for Key in Nmakes.keys():
+        for Key in list(Nmakes.keys()):
             List = GetSplitValueList(Key, DataType.TAB_EQUAL_SPLIT, MaxSplit=1)
             if len(List) != 2:
                 RaiseParserError(Key, 'Nmake', ContainerFile, '<MacroName> = <Value>')
@@ -920,11 +920,11 @@ class Inf(InfObject):
         # Update to database
         #
         if self.IsToDatabase:
-            for Key in PcdToken.keys():
+            for Key in list(PcdToken.keys()):
                 SqlCommand = """update %s set Value2 = '%s' where ID = %s""" % (self.TblInf.Table, ".".join((PcdToken[Key][0], PcdToken[Key][1])), Key)
                 self.TblInf.Exec(SqlCommand)
 
-        for Key in Pcds.keys():
+        for Key in list(Pcds.keys()):
             Pcd = PcdClass()
             Pcd.CName = Key[1]
             Pcd.TokenSpaceGuidCName = Key[0]
@@ -962,7 +962,7 @@ class Inf(InfObject):
                                         where ID = %s""" % (self.TblInf.Table, ConvertToSqlString2(Filename), ConvertToSqlString2(Family), ConvertToSqlString2(TagName), ConvertToSqlString2(ToolCode), ConvertToSqlString2(Pcd), Record[3])
                         self.TblInf.Exec(SqlCommand)
 
-        for Key in Sources.keys():
+        for Key in list(Sources.keys()):
             Source = ModuleSourceFileClass(Key[0], Key[2], Key[3], Key[1], Key[4], Sources[Key])
             self.Module.Sources.append(Source)
 
@@ -1013,7 +1013,7 @@ class Inf(InfObject):
             if Line != '':
                 MergeArches(Depex, Line, Arch)
 
-        for Key in Depex.keys():
+        for Key in list(Depex.keys()):
             Dep = ModuleDepexClass()
             Dep.Depex = Key
             Dep.SupArchList = Depex[Key]
@@ -1048,7 +1048,7 @@ class Inf(InfObject):
                                         where ID = %s""" % (self.TblInf.Table, ConvertToSqlString2(FileType), ConvertToSqlString2(Filename), ConvertToSqlString2(Target), ConvertToSqlString2(Pcd), Record[3])
                         self.TblInf.Exec(SqlCommand)
 
-        for Key in Binaries.keys():
+        for Key in list(Binaries.keys()):
             Binary = ModuleBinaryFileClass(NormPath(Key[1]), Key[0], Key[2], Key[3], Binaries[Key])
             self.Module.Binaries.append(Binary)
 
@@ -1088,7 +1088,7 @@ class Inf(InfObject):
         elif Type == TAB_PPIS:
             ListMember = self.Module.Ppis
 
-        for Key in Lists.keys():
+        for Key in list(Lists.keys()):
             ListClass = GuidProtocolPpiCommonClass()
             ListClass.CName = Key[0]
             ListClass.SupArchList = Lists[Key]

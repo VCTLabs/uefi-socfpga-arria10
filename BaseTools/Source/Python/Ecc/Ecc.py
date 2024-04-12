@@ -16,12 +16,12 @@
 #
 import Common.LongFilePathOs as os, time, glob, sys
 import Common.EdkLogger as EdkLogger
-import Database
-import EccGlobalData
-from MetaDataParser import *
+from . import Database
+from . import EccGlobalData
+from .MetaDataParser import *
 from optparse import OptionParser
-from Configuration import Configuration
-from Check import Check
+from .Configuration import Configuration
+from .Check import Check
 import Common.GlobalData as GlobalData
 
 from Common.String import NormPath
@@ -29,14 +29,14 @@ from Common.BuildVersion import gBUILD_VERSION
 from Common import BuildToolError
 from Common.Misc import PathClass
 from Common.Misc import DirCache
-from MetaFileWorkspace.MetaFileParser import DscParser
-from MetaFileWorkspace.MetaFileParser import DecParser
-from MetaFileWorkspace.MetaFileParser import InfParser
-from MetaFileWorkspace.MetaFileParser import Fdf
-from MetaFileWorkspace.MetaFileTable import MetaFileStorage
-import c
+from .MetaFileWorkspace.MetaFileParser import DscParser
+from .MetaFileWorkspace.MetaFileParser import DecParser
+from .MetaFileWorkspace.MetaFileParser import InfParser
+from .MetaFileWorkspace.MetaFileParser import Fdf
+from .MetaFileWorkspace.MetaFileTable import MetaFileStorage
+from . import c
 import re, string
-from Exception import *
+from .Exception import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 
 ## Ecc
@@ -64,7 +64,7 @@ class Ecc(object):
 
         # Parse the options and args
         self.ParseOption()
-        
+
         #
         # Check EFI_SOURCE (Edk build convention). EDK_SOURCE will always point to ECP
         #
@@ -83,11 +83,11 @@ class Ecc(object):
         EfiSourceDir = os.path.normcase(os.path.normpath(os.environ["EFI_SOURCE"]))
         EdkSourceDir = os.path.normcase(os.path.normpath(os.environ["EDK_SOURCE"]))
         EcpSourceDir = os.path.normcase(os.path.normpath(os.environ["ECP_SOURCE"]))
-        
+
         os.environ["EFI_SOURCE"] = EfiSourceDir
         os.environ["EDK_SOURCE"] = EdkSourceDir
         os.environ["ECP_SOURCE"] = EcpSourceDir
-        
+
         GlobalData.gWorkspace = WorkspaceDir
         GlobalData.gEfiSource = EfiSourceDir
         GlobalData.gEdkSource = EdkSourceDir
@@ -97,8 +97,8 @@ class Ecc(object):
         GlobalData.gGlobalDefines["EFI_SOURCE"] = EfiSourceDir
         GlobalData.gGlobalDefines["EDK_SOURCE"] = EdkSourceDir
         GlobalData.gGlobalDefines["ECP_SOURCE"] = EcpSourceDir
-        
-        
+
+
         # Generate checkpoints list
         EccGlobalData.gConfig = Configuration(self.ConfigFile)
 
@@ -113,11 +113,11 @@ class Ecc(object):
         # Get files real name in workspace dir
         #
         GlobalData.gAllFiles = DirCache(GlobalData.gWorkspace)
-         
+
         # Build ECC database
 #         self.BuildDatabase()
         self.DetectOnlyScanDirs()
-        
+
         # Start to check
         self.Check()
 
@@ -128,7 +128,7 @@ class Ecc(object):
         EccGlobalData.gDb.Close()
 
     def InitDefaultConfigIni(self):
-        paths = map(lambda p: os.path.join(p, 'Ecc', 'config.ini'), sys.path)
+        paths = [os.path.join(p, 'Ecc', 'config.ini') for p in sys.path]
         paths = (os.path.realpath('config.ini'),) + tuple(paths)
         for path in paths:
             if os.path.exists(path):
@@ -153,8 +153,8 @@ class Ecc(object):
                 EdkLogger.error("ECC", BuildToolError.OPTION_VALUE_INVALID, ExtraData="Use -f option need to fill specific folders in config.ini file")
         else:
             self.BuildDatabase()
-            
-    
+
+
     ## BuildDatabase
     #
     # Build the database for target
@@ -165,7 +165,7 @@ class Ecc(object):
         EccGlobalData.gDb.TblReport.Create()
 
         # Build database
-        if self.IsInit:            
+        if self.IsInit:
             if self.ScanMetaData:
                 EdkLogger.quiet("Building database for Meta Data File ...")
                 self.BuildMetaDataFileDatabase(SpeciDirs)
@@ -191,7 +191,7 @@ class Ecc(object):
         if SpecificDirs == None:
             ScanFolders.append(EccGlobalData.gTarget)
         else:
-            for specificDir in SpecificDirs:    
+            for specificDir in SpecificDirs:
                 ScanFolders.append(os.path.join(EccGlobalData.gTarget, specificDir))
         EdkLogger.quiet("Building database for meta data files ...")
         Op = open(EccGlobalData.gConfig.MetaDataFileCheckPathOfGenerateFileList, 'w+')
@@ -212,7 +212,7 @@ class Ecc(object):
                             # symlinks to directories are treated as directories
                             Dirs.remove(Dir)
                             Dirs.append(Dirname)
-    
+
                 for File in Files:
                     if len(File) > 4 and File[-4:].upper() == ".DEC":
                         Filename = os.path.normpath(os.path.join(Root, File))

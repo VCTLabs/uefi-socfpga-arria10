@@ -4,9 +4,9 @@
 #
 # Copyright (c) 2011 - 2014, Intel Corporation. All rights reserved.<BR>
 #
-# This program and the accompanying materials are licensed and made available 
-# under the terms and conditions of the BSD License which accompanies this 
-# distribution. The full text of the license may be found at 
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the BSD License which accompanies this
+# distribution. The full text of the license may be found at
 # http://opensource.org/licenses/bsd-license.php
 #
 # THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
@@ -141,8 +141,8 @@ def XmlElement(Dom, String):
 ## Get a single XML element using XPath style syntax.
 #
 # Similar with XmlElement, but do not strip all the leading and tailing space
-# and newline, instead just remove the newline and spaces introduced by 
-# toprettyxml() 
+# and newline, instead just remove the newline and spaces introduced by
+# toprettyxml()
 #
 # @param  Dom                The root XML DOM object.
 # @param  Strin              A XPath style path.
@@ -180,7 +180,7 @@ def XmlElementData(Dom):
 # @param  String             A XPath style path.
 #
 def XmlElementList(Dom, String):
-    return map(XmlElementData, XmlList(Dom, String))
+    return list(map(XmlElementData, XmlList(Dom, String)))
 
 
 ## Get the XML attribute of the current node.
@@ -224,6 +224,6 @@ def XmlParseFile(FileName):
         Dom = xml.dom.minidom.parse(XmlFile)
         XmlFile.close()
         return Dom
-    except BaseException, XExcept:
+    except BaseException as XExcept:
         XmlFile.close()
         Logger.Error('\nUPT', PARSER_ERROR, XExcept, File=FileName, RaiseError=True)

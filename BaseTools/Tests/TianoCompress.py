@@ -52,8 +52,8 @@ class Tests(TestTools.BaseToolsTest):
         finish = self.ReadTmpFile('output2')
         startEqualsFinish = start == finish
         if not startEqualsFinish:
-            print
-            print 'Original data did not match decompress(compress(data))'
+            print('')
+            print('Original data did not match decompress(compress(data))')
             self.DisplayBinaryData('original data', start)
             self.DisplayBinaryData('after compression', self.ReadTmpFile('output1'))
             self.DisplayBinaryData('after decomression', finish)

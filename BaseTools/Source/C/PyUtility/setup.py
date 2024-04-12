@@ -17,9 +17,11 @@
 #
 from distutils.core import setup, Extension
 import os
+import sys
 
 if 'BASE_TOOLS_PATH' not in os.environ:
-    raise "Please define BASE_TOOLS_PATH to the root of base tools tree"
+    print("Please define BASE_TOOLS_PATH to the root of base tools tree")
+    sys.exit(1)
 
 BaseToolsDir = os.environ['BASE_TOOLS_PATH']
 setup(

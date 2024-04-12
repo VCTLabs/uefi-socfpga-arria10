@@ -17,13 +17,13 @@
 #
 import Common.LongFilePathOs as os
 import subprocess
-import StringIO
+import io
 from struct import *
 
-import Ffs
-import AprioriSection
-from GenFdsGlobalVariable import GenFdsGlobalVariable
-from GenFds import GenFds
+from . import Ffs
+from . import AprioriSection
+from .GenFdsGlobalVariable import GenFdsGlobalVariable
+from .GenFds import GenFds
 from CommonDataClass.FdfClass import FvClassObject
 from Common.Misc import SaveFileOnChange
 from Common.LongFilePathSupport import CopyLongFilePath
@@ -50,7 +50,7 @@ class FV (FvClassObject):
         self.CapsuleName = None
         self.FvBaseAddress = None
         self.FvForceRebase = None
-        
+
     ## AddToBuffer()
     #
     #   Generate Fv and add it to the Buffer
@@ -67,22 +67,22 @@ class FV (FvClassObject):
     #
     def AddToBuffer (self, Buffer, BaseAddress=None, BlockSize= None, BlockNum=None, ErasePloarity='1', VtfDict=None, MacroDict = {}) :
 
-        if BaseAddress == None and self.UiFvName.upper() + 'fv' in GenFds.ImageBinDict.keys():
+        if BaseAddress == None and self.UiFvName.upper() + 'fv' in list(GenFds.ImageBinDict.keys()):
             return GenFds.ImageBinDict[self.UiFvName.upper() + 'fv']
-        
+
         #
         # Check whether FV in Capsule is in FD flash region.
         # If yes, return error. Doesn't support FV in Capsule image is also in FD flash region.
         #
         if self.CapsuleName != None:
-            for FdName in GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys():
+            for FdName in list(GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys()):
                 FdObj = GenFdsGlobalVariable.FdfParser.Profile.FdDict[FdName]
                 for RegionObj in FdObj.RegionList:
                     if RegionObj.RegionType == 'FV':
                         for RegionData in RegionObj.RegionDataList:
                             if RegionData.endswith(".fv"):
                                 continue
-                            elif RegionData.upper() + 'fv' in GenFds.ImageBinDict.keys():
+                            elif RegionData.upper() + 'fv' in list(GenFds.ImageBinDict.keys()):
                                 continue
                             elif self.UiFvName.upper() == RegionData.upper():
                                 GenFdsGlobalVariable.ErrorLogger("Capsule %s in FD region can't contain a FV %s in FD region." % (self.CapsuleName, self.UiFvName.upper()))
@@ -90,7 +90,7 @@ class FV (FvClassObject):
         GenFdsGlobalVariable.InfLogger( "\nGenerating %s FV" %self.UiFvName)
         GenFdsGlobalVariable.LargeFileInFvFlags.append(False)
         FFSGuid = None
-        
+
         if self.FvBaseAddress != None:
             BaseAddress = self.FvBaseAddress
 
@@ -165,7 +165,7 @@ class FV (FvClassObject):
                 # Update Ffs again
                 for FfsFile in self.FfsList :
                     FileName = FfsFile.GenFfs(MacroDict, FvChildAddr, BaseAddress)
-                
+
                 if GenFdsGlobalVariable.LargeFileInFvFlags[-1]:
                     FFSGuid = GenFdsGlobalVariable.EFI_FIRMWARE_FILE_SYSTEM3_GUID;
                 #Update GenFv again
@@ -216,7 +216,7 @@ class FV (FvClassObject):
         if self.BlockSizeList:
             return True
 
-        for FdName in GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys():
+        for FdName in list(GenFdsGlobalVariable.FdfParser.Profile.FdDict.keys()):
             FdObj = GenFdsGlobalVariable.FdfParser.Profile.FdDict[FdName]
             for RegionObj in FdObj.RegionList:
                 if RegionObj.RegionType != 'FV':
@@ -248,7 +248,7 @@ class FV (FvClassObject):
         #
         self.InfFileName = os.path.join(GenFdsGlobalVariable.FvDir,
                                    self.UiFvName + '.inf')
-        self.FvInfFile = StringIO.StringIO()
+        self.FvInfFile = io.StringIO()
 
         #
         # Add [Options]
@@ -272,7 +272,7 @@ class FV (FvClassObject):
                 if not self._GetBlockSize():
                     #set default block size is 1
                     self.FvInfFile.writelines("EFI_BLOCK_SIZE  = 0x1" + T_CHAR_LF)
-            
+
             for BlockSize in self.BlockSizeList :
                 if BlockSize[0] != None:
                     self.FvInfFile.writelines("EFI_BLOCK_SIZE  = "  + \
@@ -299,7 +299,7 @@ class FV (FvClassObject):
                                           ' %s' %ErasePloarity    + \
                                           T_CHAR_LF)
         if not (self.FvAttributeDict == None):
-            for FvAttribute in self.FvAttributeDict.keys() :
+            for FvAttribute in list(self.FvAttributeDict.keys()) :
                 self.FvInfFile.writelines("EFI_"            + \
                                           FvAttribute       + \
                                           ' = '             + \
@@ -310,15 +310,15 @@ class FV (FvClassObject):
                                        self.FvAlignment.strip() + \
                                        " = TRUE"                + \
                                        T_CHAR_LF)
-                                       
+
         #
         # Generate FV extension header file
         #
         if self.FvNameGuid == None or self.FvNameGuid == '':
             if len(self.FvExtEntryType) > 0:
                 GenFdsGlobalVariable.ErrorLogger("FV Extension Header Entries declared for %s with no FvNameGuid declaration." % (self.UiFvName))
-        
-        if self.FvNameGuid <> None and self.FvNameGuid <> '':
+
+        if self.FvNameGuid != None and self.FvNameGuid != '':
             TotalSize = 16 + 4
             Buffer = ''
             if self.FvNameString == 'TRUE':
@@ -360,7 +360,7 @@ class FV (FvClassObject):
                     TotalSize += (Size + 4)
                     FvExtFile.seek(0)
                     Buffer += pack('HH', (Size + 4), int(self.FvExtEntryTypeValue[Index], 16))
-                    Buffer += FvExtFile.read() 
+                    Buffer += FvExtFile.read()
                     FvExtFile.close()
                 if self.FvExtEntryType[Index] == 'DATA':
                     ByteList = self.FvExtEntryData[Index].split(',')
@@ -373,12 +373,12 @@ class FV (FvClassObject):
                         Buffer += pack('B', int(ByteList[Index1], 16))
 
             Guid = self.FvNameGuid.split('-')
-            Buffer = pack('=LHHBBBBBBBBL', 
-                        int(Guid[0], 16), 
-                        int(Guid[1], 16), 
-                        int(Guid[2], 16), 
-                        int(Guid[3][-4:-2], 16), 
-                        int(Guid[3][-2:], 16),  
+            Buffer = pack('=LHHBBBBBBBBL',
+                        int(Guid[0], 16),
+                        int(Guid[1], 16),
+                        int(Guid[2], 16),
+                        int(Guid[3][-4:-2], 16),
+                        int(Guid[3][-2:], 16),
                         int(Guid[4][-12:-10], 16),
                         int(Guid[4][-10:-8], 16),
                         int(Guid[4][-8:-6], 16),
@@ -393,7 +393,7 @@ class FV (FvClassObject):
             #
             if TotalSize > 0:
                 FvExtHeaderFileName = os.path.join(GenFdsGlobalVariable.FvDir, self.UiFvName + '.ext')
-                FvExtHeaderFile = StringIO.StringIO()
+                FvExtHeaderFile = io.StringIO()
                 FvExtHeaderFile.write(Buffer)
                 Changed = SaveFileOnChange(FvExtHeaderFileName, FvExtHeaderFile.getvalue(), True)
                 FvExtHeaderFile.close()
@@ -404,12 +404,12 @@ class FV (FvClassObject):
                                            FvExtHeaderFileName                  + \
                                            T_CHAR_LF)
 
-         
+
         #
         # Add [Files]
         #
         self.FvInfFile.writelines("[files]" + T_CHAR_LF)
-        if VtfDict != None and self.UiFvName in VtfDict.keys():
+        if VtfDict != None and self.UiFvName in list(VtfDict.keys()):
             self.FvInfFile.writelines("EFI_FILE_NAME = "                   + \
                                        VtfDict.get(self.UiFvName)          + \
                                        T_CHAR_LF)
