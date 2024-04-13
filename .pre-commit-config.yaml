@@ -1,0 +1,142 @@
+# To install the git pre-commit hook run:
+#   pre-commit install
+# To update the pre-commit hooks run:
+#   pre-commit install-hooks
+#exclude: '^(.tox/|docs/)'
+repos:
+  - repo: meta
+    hooks:
+      - id: check-useless-excludes
+      #- id: check-hooks-apply
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      #- id: check-symlinks
+      - id: debug-statements
+        #exclude: '^scripts/qt5_gui_test_client.py'
+      #- id: requirements-txt-fixer
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: fix-encoding-pragma
+        args: ['--remove']
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      #- id: check-toml
+      #- id: check-yaml
+      - id: check-json
+
+  # use ffffff (black fork) for single quote normalization
+  # (otherwise switch to black for double quotes)
+  - repo: https://github.com/ambv/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        name: "Format code"
+        language_version: python3
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [--settings-path=pyproject.toml]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.2.0
+    hooks:
+    - id: mypy
+      args:
+        - --follow-imports=normal
+        - --install-types
+        - --non-interactive
+      additional_dependencies:
+        - "munch[yaml]"
+        - "munch-stubs"
+      files: BaseTools/
+
+  - repo: "https://github.com/asottile/blacken-docs"
+    rev: "1.13.0"
+    hooks:
+      - id: "blacken-docs"
+        name: "Format docs (blacken-docs)"
+        args: ["-l", "64"]
+        additional_dependencies:
+          - "black==23.1.0"
+
+  - repo: https://github.com/PyCQA/doc8
+    rev: v1.1.1
+    hooks:
+      - id: doc8
+        #exclude: CHANGELOG\.rst$
+        args:
+          - '--max-line-length=100'
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-backticks
+        #exclude: CHANGELOG\.rst$
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+
+  - repo: https://github.com/myint/autoflake
+    rev: v2.1.1
+    hooks:
+      - id: autoflake
+        files: BaseTools/
+        args:
+          - --in-place
+          - --remove-all-unused-imports
+          - --remove-duplicate-keys
+          - --remove-unused-variables
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        files: BaseTools/
+        additional_dependencies: ["flake8-bugbear"]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ["-ll", "-q", "-r"]
+        files: BaseTools/
+
+#  - repo: https://github.com/pocc/pre-commit-hooks
+#    rev: v1.3.5
+#    hooks:
+#      - id: clang-format
+#        args: [-i]
+#        exclude: '(.*test/.*)'
+      #- id: clang-tidy
+      #- id: oclint
+      #- id: uncrustify
+      #- id: cppcheck
+
+  # current cpplint hook ignores top-level CPPLINT.cfg
+#  - repo: https://github.com/cpplint/cpplint
+#    rev: 1.6.1
+#    hooks:
+#      - id: cpplint
+#        args:
+#          - '--output=gsed'
+#          - '--linelength=120'
+#          - '--filter=-legal/copyright,-build/include_subdir,-build/header_guard,-whitespace/braces,-whitespace/newline'
+          #- '--exclude=radar_common/test/*.cpp'
+#        files: \.(h|hh|hpp|hxx|h|c|cc|cpp|cxx|c)$
+
+#  - repo: https://github.com/lovesegfault/beautysh
+#    rev: v6.2.1
+#    hooks:
+#      - id: beautysh
+#        args:
+#          - --force-function-style
+#          - 'paronly'
+#          - --indent-size
+#          - '2'
